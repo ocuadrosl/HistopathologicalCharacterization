@@ -1,9 +1,10 @@
 import cv2
 from ImageProcessing import *
+import numpy as np
 
 
 import matplotlib
-matplotlib.use('agg')
+#matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.image as mpimg
@@ -19,12 +20,23 @@ otsu = segmetBackground(imageGray)
 
 density = identifyHighDensity(otsu, 7)
 
-cv2.imwrite('00529 (1).png',density)
+#cd cv2.imwrite('../output/small_1.png',density)
 
-cv2.imshow("input Image", density);
+#cv2.imshow("input Image", density);
+
+density = np.ma.masked_where(density == 255, density)
+
+cmap = plt.get_cmap('seismic')
+cmap.set_bad('white')
 
 
-#plt.imshow(density, cmap='hot')
+plt.imsave('../output/00529 (1).png', density, cmap=cmap)
+plt.imshow(density, cmap=cmap)
 
 
-cv2.waitKey(0)
+#plt.colorbar()
+plt.show()
+
+#cv2.waitKey(0)
+
+print "DONE"
