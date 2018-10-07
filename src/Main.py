@@ -10,7 +10,7 @@ import matplotlib as mpl
 import matplotlib.image as mpimg
 
 
-imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/00529 (1).jpg"
+imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/small_1.jpg"
 image = cv2.imread(imageDir)
 
 imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -20,17 +20,18 @@ otsu = segmetBackground(imageGray)
 
 density = identifyHighDensity(otsu, 7)
 
+
 #cd cv2.imwrite('../output/small_1.png',density)
 
 #cv2.imshow("input Image", density);
 
 density = np.ma.masked_where(density == 255, density)
-
 cmap = plt.get_cmap('seismic')
 cmap.set_bad('white')
 
 
-plt.imsave('../output/00529 (1).png', density, cmap=cmap)
+
+plt.imsave('../output/small_1.png', density, cmap=cmap)
 plt.imshow(density, cmap=cmap)
 
 
