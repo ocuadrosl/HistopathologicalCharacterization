@@ -1,38 +1,41 @@
 import cv2
 from ImageProcessing import *
+from FirstLevel import FirstLevel
 import numpy as np
-
-
 import matplotlib
-#matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.image as mpimg
+from PIL.ImageOps import grayscale
+
 
 
 imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/small_1.jpg"
 image = cv2.imread(imageDir)
 
-imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+firstLevel = FirstLevel()
+firstLevel.connectedComponents(image)
+#firstLevel.plotComponents()
+firstLevel.writeComponentsAsImages("../output/component")
 
 
-otsu = segmetBackground(imageGray)
 
-density = identifyHighDensity(otsu, 7)
 
 
 #cd cv2.imwrite('../output/small_1.png',density)
 
 #cv2.imshow("input Image", density);
 
-density = np.ma.masked_where(density == 255, density)
-cmap = plt.get_cmap('seismic')
-cmap.set_bad('white')
+#TODO falta threshold aqui 
+
+#density = np.ma.masked_where(density == 0, density)
+#cmap = plt.get_cmap('seismic')
+#cmap.set_bad('black')
 
 
-
-plt.imsave('../output/small_1.png', density, cmap=cmap)
-plt.imshow(density, cmap=cmap)
+#plt.imsave('../output/small_1.png', density, cmap=cmap)
+#plt.imshow(density, cmap=cmap)
 
 
 #plt.colorbar()
