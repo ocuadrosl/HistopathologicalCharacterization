@@ -1,11 +1,11 @@
-import cv2 as cv
+import cv2 as cv2
 import numpy as np
 import copy 
 
 
-def segmetBackground(image):
+def segmetBackground(image, method):
     # otsu es una bosta
-    ret, otsu = cv.threshold(image, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+    ret, otsu = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + method)
     
     image[np.where(otsu == [255])] = [255]
         
@@ -16,7 +16,7 @@ def identifyHighDensity(image, radius):
     height = image.shape[0]
     width = image.shape[1]
     
-    maxDensity = pow(radius*2,2) 
+    maxDensity = pow(radius * 2, 2) 
    
     output = copy.deepcopy(image)
     for h in range(0, height):
@@ -37,4 +37,19 @@ def identifyHighDensity(image, radius):
                 output[h, w] = (count * 100) / maxDensity
                        
     return output
+
+
+def extractHotRegions(image):
+
+
+    image[np.where(image < [100])] = [255]
+
+
+
+
+
+
+
+
+
     
