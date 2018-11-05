@@ -1,38 +1,43 @@
 import cv2
 from ImageProcessing import *
+from FirstLevel import FirstLevel
 import numpy as np
-
 import matplotlib
-# matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.image as mpimg
+from PIL.ImageOps import grayscale
 
-imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/small_4.jpg"
+
+
+imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/small_1.jpg"
 image = cv2.imread(imageDir)
 
-imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-otsu = segmetBackground(imageGray, cv2.THRESH_TRIANGLE) #cv2.THRESH_OTSU, cv2.THRESH_TRIANGLE 
+firstLevel = FirstLevel()
+firstLevel.connectedComponents(image, radius=10)
+firstLevel.plotComponents()
+firstLevel.writeComponentsAsImages("../output/component")
 
-cv2.imwrite('../output/otsu.png', otsu)
 
-density = identifyHighDensity(otsu, 5)
+#cd cv2.imwrite('../output/small_1.png',density)
 
-# cd cv2.imwrite('../output/small_1.png',density)
+#cv2.imshow("input Image", density);
 
-# cv2.imshow("input Image", density);
+#TODO falta threshold aqui 
 
-density = np.ma.masked_where(density == 255, density)
-cmap = plt.get_cmap('seismic')
-cmap.set_bad('white')
+#density = np.ma.masked_where(density == 0, density)
+#cmap = plt.get_cmap('seismic')
+#cmap.set_bad('black')
 
-plt.imsave('../output/small_4.png', density, cmap=cmap)
-plt.imshow(density, cmap=cmap)
 
-# plt.colorbar()
+#plt.imsave('../output/small_1.png', density, cmap=cmap)
+#plt.imshow(density, cmap=cmap)
+
+
+#plt.colorbar()
 plt.show()
 
-# cv2.waitKey(0)
+#cv2.waitKey(0)
 
 print "DONE"
