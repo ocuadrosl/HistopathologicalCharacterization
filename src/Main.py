@@ -10,14 +10,15 @@ from PIL.ImageOps import grayscale
 
 
 
-imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/small_1.jpg"
+imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/00529 (1).jpg"
 image = cv2.imread(imageDir)
+image = rezise(image, 0.2)
 
 
 firstLevel = FirstLevel()
 firstLevel.connectedComponents(image, radius=10)
-firstLevel.plotComponents()
 firstLevel.writeComponentsAsImages("../output/component")
+#firstLevel.plotComponents()
 
 
 #cd cv2.imwrite('../output/small_1.png',density)
