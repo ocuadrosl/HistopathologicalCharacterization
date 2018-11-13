@@ -10,33 +10,17 @@ from PIL.ImageOps import grayscale
 
 
 
-imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/00529 (1).jpg"
+imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_2/06960 (1).jpg"
 image = cv2.imread(imageDir)
 image = rezise(image, 0.2)
 
-
+imageName = imageDir.split("/").pop().split(".")[0]
 firstLevel = FirstLevel()
 firstLevel.connectedComponents(image, radius=10)
-firstLevel.writeComponentsAsImages("../output/component")
+firstLevel.writeComponentsAsImages("../output/component_"+imageName)
 #firstLevel.plotComponents()
 
 
-#cd cv2.imwrite('../output/small_1.png',density)
-
-#cv2.imshow("input Image", density);
-
-#TODO falta threshold aqui 
-
-#density = np.ma.masked_where(density == 0, density)
-#cmap = plt.get_cmap('seismic')
-#cmap.set_bad('black')
-
-
-#plt.imsave('../output/small_1.png', density, cmap=cmap)
-#plt.imshow(density, cmap=cmap)
-
-
-#plt.colorbar()
 plt.show()
 
 #cv2.waitKey(0)
