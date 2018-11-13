@@ -8,9 +8,11 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.image as mpimg
 from PIL.ImageOps import grayscale
-#from pyatspi import component
+# from pyatspi import component
 from PIL import Image
 from compiler.ast import Printnl
+from time import ctime
+import os
 
 '''
 In this class are implemented all methods to identify and categorize 
@@ -102,9 +104,17 @@ class FirstLevel:
         plt.imshow(components, cmap=cmap)
         plt.show()
         
-    def writeComponentsAsImages(self, fileName):
+    def writeComponentsAsImages(self, mainDir, imageName):
+               
+        # create  dir
+        dirName = mainDir + "/" + imageName + "_" + str(ctime())
+        try:
+            os.mkdir(dirName)
+        except FileExistsError:
+            print("Directory " , dirName , " error creating the output directory")
+                
         height, width = self.components[1].shape
-        
+        fileName = dirName + "/" + imageName
         for i in range(0, self.components[0]):
             component = np.zeros((height, width, 3), np.uint8) + 255
             component[np.where(self.components[1] == [i])] = [i]
