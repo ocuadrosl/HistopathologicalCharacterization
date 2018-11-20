@@ -78,7 +78,7 @@ class FirstLevel:
                     
                     # if (count * 100) / maxDensity > 100:
                         # print (count * 100) / maxDensity
-                    output[h, w] = ((count * 100) / maxDensity)  # 255- ...
+                    output[h, w] = ((count * 100) // maxDensity)  # 255- ...
                            
         return output
    
@@ -116,7 +116,18 @@ class FirstLevel:
         height, width = self.components[1].shape
         fileName = dirName + "/" + imageName
         for i in range(0, self.components[0]):
-            component = np.zeros((height, width, 3), np.uint8) + 255
+            component = np.zeros((height, width, 3), np.uint8)# + 255
             component[np.where(self.components[1] == [i])] = [i]
             cv2.imwrite(fileName + "_" + str(i) + ".png", component)
+    
+    
+    
+    
+    def extractROI(self, image):
+        
+        
+        hull = cv2.convexHull(image)
+        
+        
+    
     
