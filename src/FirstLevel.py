@@ -13,7 +13,7 @@ from PIL import Image
 from compiler.ast import Printnl
 from time import ctime
 import os
-from scipy.spatial import Delaunay
+
 
 '''
 In this class are implemented all methods to identify and categorize 
@@ -27,7 +27,7 @@ class FirstLevel:
     imageGray = []
     
     '''
-    Main function to execute all the process and then extract connected components, 
+    Main function to execute all process and then extract connected components, 
     @param image:
     @param radius: to identify high density regions
     @param threshold: to extract the high density regions   
@@ -38,14 +38,20 @@ class FirstLevel:
         self.imageGray = copy.deepcopy(imageGray)
         foreground = self.segmetBackground(imageGray, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         density = self.identifyHighDensity(foreground, radius)
-        
-        
-        roi = self.extractHightDensityRegions(density, threshold)
-        self.components = cv2.connectedComponentsWithStats(roi, 8, cv2.CV_32S)
+        # first threhold higth dendity regions     
+        ret, hight = cv2.threshold(density, threshold, 255, cv2.THRESH_BINARY)  
+        ret, low = cv2.threshold(density, threshold, 255, cv2.THRESH_BINARY_INV)
+        #cv2.imshow('low', low)
+        #cv2.imshow('hight', hight)
+        #cv2.waitKey(0)
+        # roi = self.extractHightDensityRegions(density, threshold)
+        # components
+        self.components = cv2.connectedComponentsWithStats(hight, 8, cv2.CV_32S)
     
-    '''
+    
+	'''
     Ad hoc bachground segmentation  
-    bests methods are otsu and triangle
+    best methods are otsu and triangle
     '''
 
     def segmetBackground(self, image, method):
@@ -91,16 +97,18 @@ class FirstLevel:
         return output
    
     '''
-    This funciton extracts the hight density regions
+    This funciton extracts the high density regions
     @param densityImage: output of the identifyHighDensity function
     @param threhold: simple threshold value to separate the regions of interest  
     '''
 
     def extractHightDensityRegions(self, densityImage, threshold):
-        
-        ret, roi = cv2.threshold(densityImage, threshold, 255, cv2.THRESH_BINARY)
-        return roi
+				ret, hight = cv2.threshold(densityImage, threshold, 255, cv2.THRESH_BINARY)
+				ret, low = cv2.threshold(densityImage, threhold, 255, cv2.THRESH_BINARY_INV)
+				return hight  
     
+
+
     '''
     To plot components, background is setup as wh    ite 
     '''
@@ -123,13 +131,27 @@ class FirstLevel:
                 
         height, width = self.components[1].shape
         fileName = dirName + "/" + imageName
+        #extra image to write all low density regions
+        lowDensity = copy.deepcopy(self.imageGray)
+        highDensity = cv2.cvtColor(np.zeros((height, width, 3), np.uint8), cv2.COLOR_RGB2GRAY)
         for i in range(0, self.components[0]):
-            component = np.zeros((height, width, 3), np.uint8)# + 255
+            component = np.zeros((height, width, 3), np.uint8)
             component[np.where(self.components[1] == [i])] = [i]
+            
             #convex hull here
             mask = self.findConvexHull(component)
+            
+            lowDensity[np.where(mask == [255])] = [0]
+            highDensity[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])] 
             mask[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])]
-            cv2.imwrite(fileName + "_" + str(i) + ".png", mask)
+            
+            # cv2.imwrite(fileName + "_" + str(i) + ".png", mask)
+       
+        cv2.imwrite(fileName + "_low"  + ".png", lowDensity)
+        cv2.imwrite(fileName + "_high"  + ".png", highDensity)
+
+
+        
     
     
     
