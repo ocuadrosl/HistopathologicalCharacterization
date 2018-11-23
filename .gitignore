@@ -12,3 +12,5 @@ utils/
 .settings/
 /.pydevproject/
 .pydevproject
+*.swp
+*.pyc
