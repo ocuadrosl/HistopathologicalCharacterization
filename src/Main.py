@@ -8,10 +8,15 @@ import matplotlib as mpl
 import matplotlib.image as mpimg
 from PIL.ImageOps import grayscale
 
-imageDir = "../input/rp/patient_2/06960 (1).jpg"
+print "START"
+
+#TODO read input files and parameters from command line or input file...
+imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_2/06960 (1).jpg"
 image = cv2.imread(imageDir)
 
+#TODO verify original size before
 image = rezise(image, 0.2)
+
 
 imageName = imageDir.split("/").pop().split(".")[0]
 firstLevel = FirstLevel()
