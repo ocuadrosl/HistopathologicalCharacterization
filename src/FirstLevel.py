@@ -17,7 +17,7 @@ import os
 
 '''
 In this class are implemented all methods to identify and categorize 
-regions of interest in first level of microscopy resolution 
+regions of interest at lower magnification 
 '''
 
 
@@ -60,8 +60,8 @@ class FirstLevel:
     
         image[np.where(otsu == [255])] = [0]
         
-        #cv2.imshow('image', image)
-        #cv2.waitKey(0)
+        cv2.imshow('image', image)
+        cv2.waitKey(0)
         
         return image
 
