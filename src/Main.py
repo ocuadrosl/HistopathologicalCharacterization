@@ -11,18 +11,18 @@ from PIL.ImageOps import grayscale
 print "START"
 
 #TODO read input files and parameters from command line or input file...
-imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_2/06960 (1).jpg"
+imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/small_4.jpg"
 image = cv2.imread(imageDir)
 
 #TODO verify original size before
-image = rezise(image, 0.2)
+#image = rezise(image, 0.2)
 
 
 imageName = imageDir.split("/").pop().split(".")[0]
 firstLevel = FirstLevel()
 firstLevel.connectedComponents(image, radius=10, threshold=60)
 firstLevel.writeComponentsAsImages("../output", imageName)
-#firstLevel.plotComponents()
+firstLevel.plotComponents()
 
 #cv2.waitKey(0)
 

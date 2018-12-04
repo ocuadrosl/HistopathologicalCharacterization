@@ -60,8 +60,8 @@ class FirstLevel:
     
         image[np.where(otsu == [255])] = [0]
         
-        cv2.imshow('image', image)
-        cv2.waitKey(0)
+       #cv2.imshow('image', image)
+       #cv2.waitKey(0)
         
         return image
 
@@ -134,9 +134,11 @@ class FirstLevel:
         #extra image to write all low density regions
         lowDensity = copy.deepcopy(self.imageGray)
         highDensity = cv2.cvtColor(np.zeros((height, width, 3), np.uint8), cv2.COLOR_RGB2GRAY)
-        for i in range(0, self.components[0]):
+       
+        for i in range(1, self.components[0]):
             component = np.zeros((height, width, 3), np.uint8)
-            component[np.where(self.components[1] == [i])] = [i]
+            component[np.where(self.components[1] == [i])] = [255] #[i]
+            #cv2.imwrite(fileName + "_" + str(i) + ".png", component)
             
             #convex hull here
             mask = self.findConvexHull(component)
@@ -145,7 +147,7 @@ class FirstLevel:
             highDensity[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])] 
             mask[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])]
             
-            # cv2.imwrite(fileName + "_" + str(i) + ".png", mask)
+            #cv2.imwrite(fileName + "_" + str(i) + ".png", mask)
        
         cv2.imwrite(fileName + "_low"  + ".png", lowDensity)
         cv2.imwrite(fileName + "_high"  + ".png", highDensity)
@@ -158,17 +160,17 @@ class FirstLevel:
     
     def findConvexHull(self, image):
         imageGray =  cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        ret, threshed_img = cv2.threshold(imageGray, 0, 1, cv2.THRESH_BINARY)
+        ret, threshed_img = cv2.threshold(imageGray, 0, 1, cv2.THRESH_BINARY) #orignal 1 
         img, contours, hier = cv2.findContours(threshed_img, cv2.RETR_EXTERNAL,  cv2.CHAIN_APPROX_SIMPLE)
         hull = []
         for cnt in contours:
-            epsilon = 0.01*cv2.arcLength(cnt,True)
+            epsilon = 0.0001*cv2.arcLength(cnt,True) #0.01
             approx = cv2.approxPolyDP(cnt,epsilon,True)
             hull = cv2.convexHull(approx)
             cv2.drawContours(img, [hull], -1, (255, 255, 255),-1)
         return img   
         
-    #def fillHull(self, image, point ):
+    
             
         
         
