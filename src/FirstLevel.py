@@ -49,7 +49,7 @@ class FirstLevel:
         self.components = cv2.connectedComponentsWithStats(hight, 8, cv2.CV_32S)
     
     
-	'''
+    '''
     Ad hoc bachground segmentation  
     best methods are otsu and triangle
     '''

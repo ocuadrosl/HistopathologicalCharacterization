@@ -1,19 +1,28 @@
 import cv2 as cv2
 import numpy as np
 import copy 
+import math
+
 
 '''
-Resize by percentage
+Resize to 250000 (500x500) pixels aprox resolution
 '''
 
+def adaptiveRezise(image, resolution = 250000.0):
 
-def rezise(image, percentage):
-    
-    height, width = image.shape[:2]
-    return cv2.resize(image, (0, 0), fx=percentage, fy=percentage, interpolation=cv2.INTER_AREA) 
-    
+     height, width = image.shape[:2]
+     #try to aproximate 500x500 resolution	
+     factor =  math.sqrt(resolution / (height * width))  
+     
+     if factor  < 1.0:
+	print  "Image resized by scale factor " + str(factor) 
+	return cv2.resize(image, (0, 0), fx=factor, fy=factor, interpolation=cv2.INTER_AREA) 
+     else:
+	return image
 
-# bests methods are otsu and triangle
+'''
+ best methods are otsu and triangle
+'''
 def segmetBackground_deprecated(image, method):
     
     ret, otsu = cv2.threshold(image, 0, 255, method)
