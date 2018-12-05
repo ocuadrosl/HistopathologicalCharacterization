@@ -19,7 +19,7 @@ image = adaptiveRezise(image)  # 0.2
 
 imageName = imageDir.split("/").pop().split(".")[0]
 firstLevel = FirstLevel()
-firstLevel.connectedComponents(image, radius=10, threshold=50)
+firstLevel.connectedComponents(image, radius=60, threshold=60)
 firstLevel.writeComponentsAsImages("../output", imageName)
 firstLevel.plotComponents()
 
