@@ -147,7 +147,7 @@ class FirstLevel:
             highDensity[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])] 
             mask[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])]
             
-            #cv2.imwrite(fileName + "_" + str(i) + ".png", mask)
+            cv2.imwrite(fileName + "_" + str(i) + ".png", mask)
        
         cv2.imwrite(fileName + "_low"  + ".png", lowDensity)
         cv2.imwrite(fileName + "_high"  + ".png", highDensity)
