@@ -8,12 +8,10 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.image as mpimg
 from PIL.ImageOps import grayscale
-# from pyatspi import component
 from PIL import Image
 from compiler.ast import Printnl
 from time import ctime
 import os
-
 
 '''
 In this class are implemented all methods to identify and categorize 
@@ -25,6 +23,9 @@ class FirstLevel:
     components = []
     labels = []
     imageGray = []
+    roiMasks = [] #vector of ROI components
+    roi = [] #Region of interest
+    nonROi = [] # non ROI
     
     '''
     Main function to execute all process and then extract connected components, 
@@ -36,32 +37,52 @@ class FirstLevel:
     def connectedComponents(self, image, radius=5, threshold=50):       
         imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         self.imageGray = copy.deepcopy(imageGray)
-        foreground = self.segmetBackground(imageGray, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        foreground = self.segmentBackground(imageGray, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         density = self.identifyHighDensity(foreground, radius)
         # first threhold higth dendity regions     
         ret, hight = cv2.threshold(density, threshold, 255, cv2.THRESH_BINARY)  
         ret, low = cv2.threshold(density, threshold, 255, cv2.THRESH_BINARY_INV)
-        #cv2.imshow('low', low)
-        #cv2.imshow('hight', hight)
-        #cv2.waitKey(0)
+        # cv2.imshow('low', low)
+        # cv2.imshow('hight', hight)
+        # cv2.waitKey(0)
         # roi = self.extractHightDensityRegions(density, threshold)
         # components
         self.components = cv2.connectedComponentsWithStats(hight, 8, cv2.CV_32S)
-    
+        
+        
+        # find convex hulls
+        height, width = self.components[1].shape        
+        self.roi = copy.deepcopy(self.imageGray)
+        self.nonRoi = cv2.cvtColor(np.zeros((height, width, 3), np.uint8), cv2.COLOR_RGB2GRAY)
+       
+        for i in range(1, self.components[0]):
+            component = np.zeros((height, width, 3), np.uint8)
+            component[np.where(self.components[1] == [i])] = [255]  
+                    
+            mask = self.findConvexHull(component)
+            
+            self.roi[np.where(mask == [255])] = [0]
+            self.nonRoi[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])] 
+            mask[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])]
+            
+            self.roiMasks.append(mask);
+            
+               
+       
     
     '''
     Ad hoc bachground segmentation  
     best methods are otsu and triangle
     '''
 
-    def segmetBackground(self, image, method):
+    def segmentBackground(self, image, method):
     
         ret, otsu = cv2.threshold(image, 0, 255, method)
     
         image[np.where(otsu == [255])] = [0]
         
-       #cv2.imshow('image', image)
-       #cv2.waitKey(0)
+       # cv2.imshow('image', image)
+       # cv2.waitKey(0)
         
         return image
 
@@ -103,14 +124,13 @@ class FirstLevel:
     '''
 
     def extractHightDensityRegions(self, densityImage, threshold):
-				ret, hight = cv2.threshold(densityImage, threshold, 255, cv2.THRESH_BINARY)
-				ret, low = cv2.threshold(densityImage, threhold, 255, cv2.THRESH_BINARY_INV)
-				return hight  
-    
 
+	    ret, hight = cv2.threshold(densityImage, threshold, 255, cv2.THRESH_BINARY)
+	    ret, low = cv2.threshold(densityImage, threhold, 255, cv2.THRESH_BINARY_INV)
+	    return hight  
 
     '''
-    To plot components, background is setup as wh    ite 
+    Simple plot of components, background is setup as white 
     '''
 
     def plotComponents(self):
@@ -122,57 +142,35 @@ class FirstLevel:
         
     def writeComponentsAsImages(self, mainDir, imageName):
                
-        # create  dir
+        # create dir
         dirName = mainDir + "/" + imageName + "_" + str(ctime())
         try:
             os.mkdir(dirName)
         except FileExistsError:
             print("Directory " , dirName , " error creating the output directory")
-                
-        height, width = self.components[1].shape
+               
         fileName = dirName + "/" + imageName
-        #extra image to write all low density regions
-        lowDensity = copy.deepcopy(self.imageGray)
-        highDensity = cv2.cvtColor(np.zeros((height, width, 3), np.uint8), cv2.COLOR_RGB2GRAY)
-       
-        for i in range(1, self.components[0]):
-            component = np.zeros((height, width, 3), np.uint8)
-            component[np.where(self.components[1] == [i])] = [255] #[i]
-            #cv2.imwrite(fileName + "_" + str(i) + ".png", component)
-            
-            #convex hull here
-            mask = self.findConvexHull(component)
-            
-            lowDensity[np.where(mask == [255])] = [0]
-            highDensity[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])] 
-            mask[np.where(mask == [255])] = self.imageGray[np.where(mask == [255])]
-            
-            cv2.imwrite(fileName + "_" + str(i) + ".png", mask)
-       
-        cv2.imwrite(fileName + "_low"  + ".png", lowDensity)
-        cv2.imwrite(fileName + "_high"  + ".png", highDensity)
-
-
         
+        for i in range(1, len(self.roiMasks)):
+            cv2.imwrite(fileName + "_" + str(i) + ".png", self.roiMasks[i])
+       
+        cv2.imwrite(fileName + "_low" + ".png", self.roi)
+        cv2.imwrite(fileName + "_high" + ".png", self.nonRoi)
     
     
-    
-    
+    '''
+    Find convex hull and fill it white
+    low epsilon to more convex hull
+    '''
     def findConvexHull(self, image):
-        imageGray =  cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        ret, threshed_img = cv2.threshold(imageGray, 0, 1, cv2.THRESH_BINARY) #orignal 1 
-        img, contours, hier = cv2.findContours(threshed_img, cv2.RETR_EXTERNAL,  cv2.CHAIN_APPROX_SIMPLE)
+        imageGray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        ret, threshed_img = cv2.threshold(imageGray, 0, 1, cv2.THRESH_BINARY)  # orignal 1 
+        img, contours, hier = cv2.findContours(threshed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         hull = []
         for cnt in contours:
-            epsilon = 0.0001*cv2.arcLength(cnt,True) #0.01
-            approx = cv2.approxPolyDP(cnt,epsilon,True)
+            epsilon = 0.0001 * cv2.arcLength(cnt, True)  # 0.0001
+            approx = cv2.approxPolyDP(cnt, epsilon, True)
             hull = cv2.convexHull(approx)
-            cv2.drawContours(img, [hull], -1, (255, 255, 255),-1)
+            cv2.drawContours(img, [hull], -1, (255, 255, 255), -1)
         return img   
-        
-    
-            
-        
-        
-    
     

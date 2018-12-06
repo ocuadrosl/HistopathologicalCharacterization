@@ -11,10 +11,10 @@ from PIL.ImageOps import grayscale
 print "START"
 
 # TODO read input files and parameters from command line or input file...
-imageDir = "../input/rp/patient_1/00529 (1).jpg"
+imageDir = "/home/oscar/MEGA/post-doc/src/input/rp/patient_1/00529 (1).jpg"
 image = cv2.imread(imageDir)
 
-image = adaptiveRezise(image)  # 0.2
+image = adaptiveResize(image)  # 0.2
 
 
 imageName = imageDir.split("/").pop().split(".")[0]

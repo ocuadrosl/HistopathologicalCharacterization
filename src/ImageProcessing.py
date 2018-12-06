@@ -8,17 +8,17 @@ import math
 Resize to 250000 (500x500) pixels aprox resolution
 '''
 
-def adaptiveRezise(image, resolution = 250000.0):
+def adaptiveResize(image, resolution = 250000.0):
 
-     height, width = image.shape[:2]
-     #try to aproximate 500x500 resolution	
-     factor =  math.sqrt(resolution / (height * width))  
+    height, width = image.shape[:2]
+    #try to aproximate 500x500 resolution	
+    factor =  math.sqrt(resolution / (height * width))  
      
-     if factor  < 1.0:
-	print  "Image resized by scale factor " + str(factor) 
-	return cv2.resize(image, (0, 0), fx=factor, fy=factor, interpolation=cv2.INTER_AREA) 
-     else:
-	return image
+    if factor  < 1.0:
+	    print  "Image resized by scale factor " + str(factor) 
+	    return cv2.resize(image, (0, 0), fx=factor, fy=factor, interpolation=cv2.INTER_AREA) 
+    else:
+	    return image
 
 '''
  best methods are otsu and triangle
