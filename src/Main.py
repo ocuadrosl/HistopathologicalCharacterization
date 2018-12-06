@@ -7,6 +7,28 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.image as mpimg
 from PIL.ImageOps import grayscale
+from  GradientFeatures import GradientFeatures
+from LBPFeatures import LBPFeatures
+
+
+imageDir = "../input/high.png"
+image = cv2.imread(imageDir)
+imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+lbp = LBPFeatures()
+lbp.computeLBP(imageGray)
+
+
+
+quit()
+
+gF = GradientFeatures()
+gF.computeGradient(imageGray)
+gF.plotGradient()
+
+
+
+
 
 print "START"
 
