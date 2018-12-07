@@ -15,9 +15,14 @@ imageDir = "../input/high.png"
 image = cv2.imread(imageDir)
 imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-lbp = LBPFeatures()
-lbp.computeLBP(imageGray)
+lbpFearures = LBPFeatures()
+lbp = lbpFearures.computeLBP(imageGray)
 
+
+n_bins = int(lbp.max() + 1)
+hist, _ = np.histogram(lbp.ravel(), normed=True, bins=n_bins + 2, range=(0, n_bins + 2))
+plt.hist(hist)
+plt.show()
 
 
 quit()
