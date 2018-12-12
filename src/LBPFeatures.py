@@ -7,9 +7,10 @@ import copy
 class LBPFeatures:
     
     '''
-    This function computes the LBP pattern on the masked RIO images (output of FirstLevel)
-    after computing LBP  a mask (weights) is created in which zero velue is assigned to the background (black)
-    then the  histogram (output) is computed ignoring the background  
+    This function computes the LBP pattern on the masked ROI images (output of FirstLevel)
+    after computing LBP, a mask (weights) is created in which zero value is assigned to the background (black)
+    then the  histogram (output) is computed ignoring the background
+    TODO parameters...  
     '''
     def computeLBP(self, image):
         lbp = feature.local_binary_pattern(image, 8, 1, method="uniform")

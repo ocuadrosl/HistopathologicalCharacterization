@@ -11,26 +11,17 @@ from  GradientFeatures import GradientFeatures
 from LBPFeatures import LBPFeatures
 
 
-imageDir = "../input/high2.png"
-image = cv2.imread(imageDir)
-imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
+'''
 lbpFearures = LBPFeatures()
 hist= lbpFearures.computeLBP(imageGray)
 
 plt.hist(hist)
 plt.show()
 
-
-quit()
-
 gF = GradientFeatures()
 gF.computeGradient(imageGray)
 gF.plotGradient()
-
-
-
-
+'''
 
 print "START"
 
@@ -43,9 +34,9 @@ image = adaptiveResize(image)  # 0.2
 
 imageName = imageDir.split("/").pop().split(".")[0]
 firstLevel = FirstLevel()
-firstLevel.connectedComponents(image, radius=6, threshold=60)
+firstLevel.connectedComponents(image, radius=7, threshold=60)
 firstLevel.writeComponentsAsImages("../output", imageName)
-firstLevel.plotComponents()
+#firstLevel.plotComponents()
 
 # cv2.waitKey(0)
 

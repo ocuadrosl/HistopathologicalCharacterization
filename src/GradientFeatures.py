@@ -20,12 +20,17 @@ class GradientFeatures:
         self.magnitude = np.sqrt(sobelx ** 2.0 + sobely ** 2.0)
         self.direction = np.arctan2(sobely, sobelx) * (180.0 / np.pi)
         
+        #mask here
+        self.magnitude[np.where(image == [0])] = [0] 
+        self.direction[np.where(image == [0])] = [0]   
+        
 
     '''
     just plot...
     another useless function
     '''
     def plotGradient(self):
+        #mask to plot only
         self.direction = np.ma.masked_where(self.magnitude == 0, self.direction)
         self.magnitude = np.ma.masked_where(self.magnitude == 0, self.magnitude)
         
