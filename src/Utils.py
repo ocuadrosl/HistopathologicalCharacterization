@@ -7,11 +7,12 @@ physical in micrometers
 
 def computeResolution(physicalX, physicalY, sizeX, sizeY, inputMagnification, outputMagnification):
     
-    magnificationDifference = (inputMagnification - outputMagnification) + 0.00000000001 
-     
-    outputPhysicalX = physicalX * magnificationDifference
-    outputPhysicalY = physicalY * magnificationDifference
-    
+    eyePice   = 10.0
+    magnificationDifference = ((inputMagnification*eyePice) - (outputMagnification*eyePice)) + 0.00000000001 
+        
+    outputPhysicalX = (physicalX * magnificationDifference) + physicalX
+    outputPhysicalY = (physicalY * magnificationDifference) + physicalY
+        
     sizeXOutput = sizeX / outputPhysicalX
     sizeYOutput = sizeY / outputPhysicalY
     

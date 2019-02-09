@@ -2,6 +2,7 @@ import cv2 as cv2
 import numpy as np
 import copy 
 import math
+import matplotlib.pyplot as plt
 
 
 '''
@@ -75,3 +76,17 @@ def extractHightDensityRegions_deprecated(densityImage, threshold):
     
     ret, roi = cv2.threshold(densityImage, threshold, 255, cv2.THRESH_BINARY)
     return roi
+
+
+
+def imageToColorMap(image, colorMap="gist_rainbow"):
+        
+    
+    color = cv2.applyColorMap(image, cv2.COLORMAP_JET)
+    
+    return cv2.applyColorMap(image, cv2.COLORMAP_JET)
+    
+    
+    
+    
+    

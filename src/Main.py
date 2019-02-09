@@ -15,7 +15,7 @@ from ImageProcessing import *
 fileName = "/home/oscar/src/HistopathologicalCharacterization/input/B526-18  B 20181107/Image01B526-18  B .vsi"
 
 firstLevel = FirstLevel()
-firstLevel.compute(fileName, 5, 5, 20,20)
+firstLevel.compute(fileName, 7, 0.5, 9,9)
 
 
 '''
