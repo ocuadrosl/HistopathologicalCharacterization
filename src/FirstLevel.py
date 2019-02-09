@@ -60,11 +60,14 @@ class FirstLevel:
             ome = OMEXML(bioformats.get_omexml_metadata(path=fileName))
             sizeX = ome.image().Pixels.get_SizeX()
             sizeY = ome.image().Pixels.get_SizeY()
-            print sizeX, sizeY
             
             physicalX = ome.image().Pixels.get_PhysicalSizeX()
             physicalY = ome.image().Pixels.get_PhysicalSizeY()
-             
+            
+            print 'Original size: ', sizeX, sizeY
+            print 'Original phisical pixel size: ', physicalX, physicalY
+            
+                       
             inputMagnification = np.round(np.float(ome.instrument(0).Objective.get_NominalMagnification()), 0)
                       
             # initialize variables         
@@ -149,6 +152,8 @@ class FirstLevel:
                 hMosaicDensity = []
                 hMosaicGray = []
                 
+                print 
+                
                 
                 #roi, nonRoi = self.connectedComponetsTile(vMosaicDensity, vMosaicGray, 60)
                 #cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/densityTmp.tiff" , vMosaicGray)
@@ -157,11 +162,12 @@ class FirstLevel:
             vMosaicDensity = self.identifyHighDensityTile(copy.deepcopy(vMosaicGray), radius)
             roi, nonRoi = self.connectedComponetsTile(vMosaicDensity, vMosaicGray, 90)
             
-            vMosaicDensity =  cv2.applyColorMap((vMosaicDensity*255)/100, cv2.COLORMAP_JET)
+            #vMosaicDensity =  cv2.applyColorMap((vMosaicDensity*255)/100, cv2.COLORMAP_JET)
+            self.writeDensityImage(vMosaicDensity, "/home/oscar/src/HistopathologicalCharacterization/output/density.png")
             
             cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/roi.tiff" , roi)
             cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/nonRoi.tiff" , nonRoi)
-            cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/density.png" , vMosaicDensity)
+            #cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/density.png" , vMosaicDensity)
             
             #self.connectedComponents(vMosaic, radius)  
             #firstLevel.writeComponentsAsImages("../output", mosaic)
@@ -326,6 +332,13 @@ class FirstLevel:
         cmap.set_bad('white')
         plt.imshow(components, cmap=cmap)
         plt.show()
+        
+    def writeDensityImage(self, image, fileName):
+        image = np.ma.masked_where(image == 0, image)
+        cmap = plt.get_cmap('jet')
+        cmap.set_bad('white')
+        plt.imsave(fileName, image, cmap=cmap)
+        
         
     def writeComponentsAsImages(self, mainDir, imageName):
                
