@@ -12,9 +12,13 @@ def computeResolution(physicalX, physicalY, sizeX, sizeY, inputMagnification, ou
         
     outputPhysicalX = (physicalX * magnificationDifference) + physicalX
     outputPhysicalY = (physicalY * magnificationDifference) + physicalY
+    
+    #print outputPhysicalY, outputPhysicalY
         
     sizeXOutput = sizeX / outputPhysicalX
     sizeYOutput = sizeY / outputPhysicalY
+    
+   #print sizeXOutput, sizeYOutput
     
     return sizeXOutput * sizeYOutput
     

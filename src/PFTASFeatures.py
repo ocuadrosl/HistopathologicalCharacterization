@@ -10,7 +10,10 @@ class PFTASFeatures:
     TODO parameters...  
     '''
     def computePFTASFeatures(self, image):
-        moments = mahotas.features.pftas(image)
-        return moments
+        pftas = mahotas.features.pftas(image)
+        return pftas
     
-   
+    def computeTASFeatures(self, image):
+        tas = mahotas.features.tas(image)
+        return tas
+    

@@ -8,75 +8,228 @@ import numpy as np
 from bioformats.omexml import OMEXML
 from Utils import *
 from FirstLevel import FirstLevel
+from LBPFeatures import *
+import matplotlib.pyplot as plt
+
 
 import cv2
 from ImageProcessing import *
 
-fileName = "/home/oscar/src/HistopathologicalCharacterization/input/B526-18  B 20181107/Image01B526-18  B .vsi"
+'''
 
+fileName = "/home/oscar/src/HistopathologicalCharacterization/input/B2046_18 B20181107/Image02B2046_18 B.vsi"
 firstLevel = FirstLevel()
-firstLevel.compute(fileName, 7, 0.5, 9,9)
 
+
+
+# for large samples
+high, low, density = firstLevel.identifyHighDensityLargeSample(fileName, 15, 0.25, 9,9, 60)
+cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/test/Image02B2046_18 B_high.png" , high)
+cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/test/Image02B2046_18 B_low.png" , low)
+firstLevel.writeDensityImage(density, "/home/oscar/src/HistopathologicalCharacterization/output/test/Image02B2046_18 B_colormap.png")
+'''
 
 '''
 
-javabridge.start_vm(class_path=bioformats.JARS, run_headless=True, max_heap_size='8G')
-try:
-    log4j.basic_config()
-    directoryPath = "/home/oscar/src/HistopathologicalCharacterization/input/B526-18  B 20181107/Image01B526-18  B .vsi"
-  
-      
-    ImageReader = bioformats.formatreader.make_image_reader_class()
-    reader = ImageReader()
-    reader.setId(directoryPath)
-    ##
-    rdr = bioformats.get_image_reader(None, path=directoryPath)
-    totalseries = 1
-    try:
-        totalseries = np.int(rdr.rdr.getSeriesCount())
-    except:
-        print("exc")
-        totalseries = 1  # in case there is only ONE series
-    ##
-    
-    
-   # print(reader.getSizeY(), reader.getSizeX())
-    width = 6000
-    height = 6000
-    ome = OMEXML(bioformats.get_omexml_metadata(path=directoryPath))
-    x = ome.image().Pixels.SizeY
-    y = ome.image().Pixels.SizeX
-    c = ome.image().Pixels.get_SizeC()
-    t = ome.image().Pixels.get_SizeT()
-    z = ome.image().Pixels.get_SizeZ()
-    
-    
-    #print ome.instrument(0).Objective.get_NominalMagnification()
-    #print width*height
-    physicalX = ome.image().Pixels.get_PhysicalSizeX()
-    physicalY = ome.image().Pixels.get_PhysicalSizeY()
-   
-    newResolution = computeScaleFactor(physicalX, physicalY, width, height, 40, 5)
-       
-        
-    rdr = bioformats.ImageReader(directoryPath)
-    format_reader = rdr.rdr
-    data = reader.openBytesXYWH(0,50098,50098,width,height)
-      
+## for small samples
+fileName  = "/home/oscar/src/HistopathologicalCharacterization/input/rp/patient_1/00529 (2).jpg"
+image = cv2.imread(fileName)
+image = adaptiveResize(image)  # 0.2
+imageName = fileName.split("/").pop().split(".")[0]
+density = firstLevel.connectedComponents(image, radius=7, threshold=60)
+firstLevel.writeComponentsAsImages("../output", imageName)
+cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (2)_density.tiff" , density)
+firstLevel.writeDensityImage(density, "/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (2)_colormap.tiff")
+#firstLevel.plotComponents()
 
-    data.shape = (width, height, 3)
-    
-    image = adaptiveResize(data, newResolution)
-    
-    
-    cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/input/B526-18  B 20181107/Image01B526-18  B .tiff", image)
-    cv2.imshow("tile", image)
-    cv2.waitKey()
-    #pylab.imshow(data)
-    #pylab.gca().set_title("tile")
-    #pylab.show()
-    
-finally:
-    javabridge.kill_vm()
-    
 '''
+
+
+
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (2)_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (2)_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+plt.figure(1)
+plt.bar(np.arange(len(lbpRoi)), lbpRoi, align='center', alpha=0.5)
+#plt.title('LOW')
+plt.figure(2)
+plt.bar(np.arange(len(lbpNoRoi)), lbpNoRoi, align='center', alpha=0.5)
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi - np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+
+
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+#plt.show()
+
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (4)_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (4)_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi - np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529_1_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529_1_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (1)_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (1)_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi - np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (2)_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (2)_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi - np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (3)_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (3)_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi - np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (4)_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/06960 (4)_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi - np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/Image01B2046_18 B_high.tiff"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/Image01B2046_18 B_low.tiff"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi- np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+
+
+fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/Image01B526-18  B_high.png"
+fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/Image01B526-18  B_low.png"
+
+roi  = cv2.imread(fileNameRoi, cv2.IMREAD_GRAYSCALE)
+noRoi = cv2.imread(fileNameNoRoi, cv2.IMREAD_GRAYSCALE)
+
+lbpRoi = computeLBP(roi)
+lbpNoRoi = computeLBP(noRoi)
+
+plt.figure(3)
+newlbpRoi = (lbpRoi - np.min(lbpRoi)) / (np.max(lbpRoi) - np.min(lbpRoi))
+newlbpNoRoi = (lbpNoRoi- np.min(lbpNoRoi)) / (np.max(lbpNoRoi) - np.min(lbpNoRoi))
+plt.plot(newlbpNoRoi)
+#plt.title('LOW')
+plt.figure(4)
+plt.plot(newlbpRoi)
+#plt.title('HIGH')
+print(["%.8f" % v for v in newlbpRoi])
+print(["%.8f" % v for v in newlbpNoRoi])
+
+
+plt.show()
+

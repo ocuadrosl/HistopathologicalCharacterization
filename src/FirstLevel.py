@@ -38,7 +38,7 @@ class FirstLevel:
     roi = []  # Region of interest
     nonROi = []  # non ROI
     
-    def compute(self, fileName, radius, outputMagnification, numberOfTilesX, numberOfTilesY):
+    def identifyHighDensityLargeSample(self, fileName, radius, outputMagnification, numberOfTilesX, numberOfTilesY, threshold=60):
         
         javabridge.start_vm(class_path=bioformats.JARS, run_headless=True, max_heap_size='8G')
         
@@ -65,8 +65,7 @@ class FirstLevel:
             physicalY = ome.image().Pixels.get_PhysicalSizeY()
             
             print 'Original size: ', sizeX, sizeY
-            print 'Original phisical pixel size: ', physicalX, physicalY
-            
+            print 'Original physical pixel size: ', physicalX, physicalY
                        
             inputMagnification = np.round(np.float(ome.instrument(0).Objective.get_NominalMagnification()), 0)
                       
@@ -74,7 +73,7 @@ class FirstLevel:
             tileBeginX = 0
             tileBeginY = 0
             format_reader = bioformats.ImageReader(fileName).rdr
-            imageNumber = 1;
+            tileCounter = 0;
             
             hMosaicDensity = []
             hMosaicGray = []
@@ -82,33 +81,22 @@ class FirstLevel:
             vMosaicGray = []
             
             for y in range(0, numberOfTilesY):  # <=
-                        
+                              
                 # computing begin and height size 
                 tileBeginY = minMax(y , 0, numberOfTilesY, 0, sizeY)
                 height = minMax(y + 1 , 0, numberOfTilesY, 0, sizeY) - tileBeginY
-                
-                #redizing and incrementing tile en raius/2
-                #height = height+radius/2 if (height+radius/2) < sizeY else height 
-                #tileBeginY = tileBeginY-radius/2 if (tileBeginY-radius/2) >= 0 else tileBeginY
                     
                 for x in range(0, numberOfTilesX):  # <=   
                                        
                     # computing begin and X size
                     tileBeginX = minMax(x , 0, numberOfTilesX, 0, sizeX)
                     width = minMax(x + 1 , 0, numberOfTilesX, 0, sizeX) - tileBeginX
-                    
-                    #redizing and incrementing tile en raius/2
-                    #width = width+radius/2 if (width+radius/2) < sizeX else width 
-                    #tileBeginX = tileBeginX-radius/2 if (tileBeginX-radius/2) >= 0 else tileBeginX
-                
-                    
-                    # print x, y 
-                    #print tileBeginX, tileBeginY, width , height
-                                        
+                             
+                               
                     newResolution = computeResolution(physicalX, physicalY, width, height, inputMagnification , outputMagnification)
                                         
                     # extracting tile
-                                        
+                                 
                     tile = reader.openBytesXYWH(0, tileBeginX, tileBeginY, width, height)
                     tile.shape = (height, width, 3)
                     
@@ -116,73 +104,47 @@ class FirstLevel:
                     tileResized = adaptiveResize(tile, newResolution)
                     tileGray = cv2.cvtColor(tileResized, cv2.COLOR_BGR2GRAY)
                     
-                    #print tileGray.shape
-                    
-                    #tileDensity = self.identifyHighDensityTile(copy.deepcopy(tileGray), radius)
-                    
-                    
-                    #cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/tiles/tile_"+str(imageNumber)+".tiff", tileDensity)
-                    #better pass parameters as args....
-                    
                     if(x > 0):
-                        #hMosaicDensity  = np.concatenate((hMosaicDensity, tileDensity), axis=1)
-                        hMosaicGray  = np.concatenate((hMosaicGray, tileGray), axis=1)
+                       
+                        hMosaicGray = np.concatenate((hMosaicGray, tileGray), axis=1)
                         
                     else:
-                        #hMosaicDensity = tileDensity
+                       
                         hMosaicGray = tileGray
                     # parallel computation goes here 
-                           
-                    # self.writeComponentsAsImages("/home/oscar/src/HistopathologicalCharacterization/output/tiles", "tile_"+str(imageNumber))                  
-                    # cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/tiles/tile_" + str(imageNumber) + ".tiff" , hMosaicDensity)
-                    # cv2.imshow("tile", image)
-                    # cv2.waitKey()
                     
-                    imageNumber = imageNumber + 1
+                    tileCounter = tileCounter + 1
                                 
                 # free memory               
                 gc.collect()
-                if(y > 0 ):
-                    #vMosaicDensity  = np.concatenate((vMosaicDensity, hMosaicDensity), axis=0)
-                    vMosaicGray  = np.concatenate((vMosaicGray, hMosaicGray), axis=0)
+                if(y > 0):
+                    vMosaicGray = np.concatenate((vMosaicGray, hMosaicGray), axis=0)
                 else:
-                    #vMosaicDensity = hMosaicDensity
+            
                     vMosaicGray = hMosaicGray
                 
                 hMosaicDensity = []
                 hMosaicGray = []
-                
-                print 
-                
-                
-                #roi, nonRoi = self.connectedComponetsTile(vMosaicDensity, vMosaicGray, 60)
-                #cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/densityTmp.tiff" , vMosaicGray)
-                #cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/roiTmp.tiff" , nonRoi)
-                
+                print "processing", str((tileCounter*100)/(numberOfTilesX*numberOfTilesY))+'%'
+            
             vMosaicDensity = self.identifyHighDensityTile(copy.deepcopy(vMosaicGray), radius)
-            roi, nonRoi = self.connectedComponetsTile(vMosaicDensity, vMosaicGray, 90)
-            
-            #vMosaicDensity =  cv2.applyColorMap((vMosaicDensity*255)/100, cv2.COLORMAP_JET)
-            self.writeDensityImage(vMosaicDensity, "/home/oscar/src/HistopathologicalCharacterization/output/density.png")
-            
-            cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/roi.tiff" , roi)
-            cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/nonRoi.tiff" , nonRoi)
-            #cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/density.png" , vMosaicDensity)
-            
-            #self.connectedComponents(vMosaic, radius)  
-            #firstLevel.writeComponentsAsImages("../output", mosaic)
-                
+            print "High density computation [ok]"
+            high, low = self.connectedComponetsTile(vMosaicDensity, vMosaicGray, threshold)
+            print "Connected components [ok]"                
         finally:
             javabridge.kill_vm()
     
         print "succes"
-        
-        
+        return (high, low, vMosaicDensity)
+    
+    
+    
+    
     
     def  identifyHighDensityTile(self, tileGray, radius=5):
         
         foreground = self.segmentBackground(tileGray, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        #print "High density tile OK"   
+        # print "High density tile OK"   
         return self.identifyHighDensity(foreground, radius)
     
     def connectedComponetsTile(self, densityImage, grayImage, threshold):
@@ -207,11 +169,9 @@ class FirstLevel:
             nonRoi[np.where(mask == [255])] = grayImage[np.where(mask == [255])] 
             mask[np.where(mask == [255])] = grayImage[np.where(mask == [255])]
             
-            #roiMasks.append(mask);
+            # roiMasks.append(mask);
         print "Connected components tiles [OK]" 
         return (roi, nonRoi)
-        
-             
     
     '''
     Main function to execute all process and then extract connected components, 
@@ -259,8 +219,8 @@ class FirstLevel:
             
             self.roiMasks.append(mask);
     
+        return density
         print "Connected components OK"    
-    
     
     '''
     Ad hoc bachground segmentation  
@@ -337,8 +297,7 @@ class FirstLevel:
         image = np.ma.masked_where(image == 0, image)
         cmap = plt.get_cmap('jet')
         cmap.set_bad('white')
-        plt.imsave(fileName, image, cmap=cmap)
-        
+        plt.imsave(fileName, image/100.0 , cmap=cmap)
         
     def writeComponentsAsImages(self, mainDir, imageName):
                
@@ -374,12 +333,6 @@ class FirstLevel:
             cv2.drawContours(img, [hull], -1, (255, 255, 255), -1)
         return img   
     
-    #def extractROI(self, image):
-        
-        
-        
-        
-        
-        
+    # def extractROI(self, image):
         
     
