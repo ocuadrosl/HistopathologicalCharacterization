@@ -10,24 +10,44 @@ from Utils import *
 from FirstLevel import FirstLevel
 from LBPFeatures import *
 import matplotlib.pyplot as plt
+from gui.MainGui import *
+
+
+#QtGui.QMainWindow
+        
+        
+if __name__ == "__main__":
+    app = QtGui.QApplication(sys.argv)
+    w = Ui_MainWindow()
+    w.setupUi(w)
+    w.show()
+    sys.exit(app.exec_())
+        
+
+
+#
+quit()
+
 
 
 import cv2
 from ImageProcessing import *
 
-'''
 
-fileName = "/home/oscar/src/HistopathologicalCharacterization/input/B2046_18 B20181107/Image02B2046_18 B.vsi"
+
+fileName = "/home/oscar/eclipse-workspace/HistopathologicalCharacterization/input/B2046_18 B20181107/Image01B2046_18 B.vsi"
 firstLevel = FirstLevel()
 
 
 
 # for large samples
-high, low, density = firstLevel.identifyHighDensityLargeSample(fileName, 15, 0.25, 9,9, 60)
-cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/test/Image02B2046_18 B_high.png" , high)
-cv2.imwrite("/home/oscar/src/HistopathologicalCharacterization/output/test/Image02B2046_18 B_low.png" , low)
-firstLevel.writeDensityImage(density, "/home/oscar/src/HistopathologicalCharacterization/output/test/Image02B2046_18 B_colormap.png")
-'''
+high, low, density, gray = firstLevel.identifyHighDensityLargeSample(fileName, 7, 0.05, 9,9, 60)
+cv2.imwrite("/home/oscar/eclipse-workspace/HistopathologicalCharacterization/output//Image01B2046_18 B_high.png" , high)
+cv2.imwrite("/home/oscar/eclipse-workspace/HistopathologicalCharacterization/output/Image01B2046_18 B_low.png" , low)
+firstLevel.writeDensityImage(density, "/home/oscar/eclipse-workspace/HistopathologicalCharacterization/output/Image01B2046_18 B_colormap.png")
+cv2.imwrite("/home/oscar/eclipse-workspace/HistopathologicalCharacterization/output/Image01B2046_18 B_gray.png" , gray)
+
+
 
 '''
 
@@ -45,7 +65,7 @@ firstLevel.writeDensityImage(density, "/home/oscar/src/HistopathologicalCharacte
 '''
 
 
-
+'''
 
 fileNameRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (2)_high.png"
 fileNameNoRoi = "/home/oscar/src/HistopathologicalCharacterization/output/test/00529 (2)_low.png"
@@ -233,3 +253,4 @@ print(["%.8f" % v for v in newlbpNoRoi])
 
 plt.show()
 
+'''
