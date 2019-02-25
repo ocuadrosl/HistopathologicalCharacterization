@@ -15,21 +15,7 @@ def computeLBP(image):
     
     radius = 1#5
     nPoints = 8#8 #* radius
-    #lbp = feature.local_binary_pattern(image, nPoints, radius, method="uniform", ignore_zeros=True)
-    lbpHist = mahotas.features.lbp(image, radius, nPoints, ignore_zeros=True)
-        #print lbp
-    '''
-    mask = copy.deepcopy(lbp)
-    mask[np.where(image != [0])] = [1] 
-    mask[np.where(image == [0])] = [0]   
-    '''
-        #cv2.imshow('mask', mask)
-        #cv2.waitKey(0)
-        
-        #TODO optimize bins and range
-        #nBins = 10# int(lbp.max() + 1)
-                
-        #hist, _ = np.histogram(lbp,  bins=nBins)#, weights=mask)  
-    return lbpHist
+    
+    return mahotas.features.lbp(image, radius, nPoints, ignore_zeros=True)
     
    

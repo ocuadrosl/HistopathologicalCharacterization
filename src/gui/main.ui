@@ -6,49 +6,106 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1049</width>
-    <height>600</height>
+    <width>1227</width>
+    <height>767</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QMdiArea" name="mdiArea">
     <property name="geometry">
      <rect>
-      <x>940</x>
-      <y>510</y>
-      <width>80</width>
-      <height>25</height>
+      <x>210</x>
+      <y>40</y>
+      <width>921</width>
+      <height>551</height>
      </rect>
-    </property>
-    <property name="text">
-     <string>Process</string>
     </property>
    </widget>
-   <widget class="QGraphicsView" name="graphicsView">
+   <widget class="QScrollArea" name="scrollArea">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>20</y>
-      <width>401</width>
-      <height>321</height>
+      <x>10</x>
+      <y>40</y>
+      <width>171</width>
+      <height>551</height>
      </rect>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>169</width>
+       <height>549</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>620</y>
+      <width>921</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
     </property>
    </widget>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1049</width>
-     <height>23</height>
+     <width>1227</width>
+     <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menumenu">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionOpen"/>
+    <addaction name="actionSave"/>
+   </widget>
+   <widget class="QMenu" name="menuModules">
+    <property name="title">
+     <string>Modules</string>
+    </property>
+    <addaction name="actionHigh_density"/>
+   </widget>
+   <addaction name="menumenu"/>
+   <addaction name="menuModules"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionHigh_density">
+   <property name="text">
+    <string>High density</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

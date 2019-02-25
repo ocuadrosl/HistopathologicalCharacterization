@@ -47,7 +47,8 @@ class FirstLevel:
             imageReader = bioformats.formatreader.make_image_reader_class()
             reader = imageReader()
             reader.setId(fileName)
-    
+                      
+            '''
             rdr = bioformats.get_image_reader(None, path=fileName)
             totalseries = 1
             try:
@@ -55,6 +56,10 @@ class FirstLevel:
             except:
                 print("exc")
                 totalseries = 1  # in case there is only ONE series
+            '''
+            #r = bioformats.get_image_reader(None, fileName)
+            #r.rdr.openThumbBytes(10)
+           
         
             # Get image Metadata 
             ome = OMEXML(bioformats.get_omexml_metadata(path=fileName))
@@ -72,10 +77,9 @@ class FirstLevel:
             # initialize variables         
             tileBeginX = 0
             tileBeginY = 0
-            format_reader = bioformats.ImageReader(fileName).rdr
+            #format_reader = bioformats.ImageReader(fileName).rdr
             tileCounter = 0;
             
-            hMosaicDensity = []
             hMosaicGray = []
             vMosaicDensity = []
             vMosaicGray = []
@@ -135,7 +139,7 @@ class FirstLevel:
             javabridge.kill_vm()
     
         print "succes"
-        return (high, low, vMosaicDensity)
+        return (high, low, vMosaicDensity, vMosaicGray)
     
     
     

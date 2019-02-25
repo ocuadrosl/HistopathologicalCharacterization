@@ -11,27 +11,23 @@ from FirstLevel import FirstLevel
 from LBPFeatures import *
 import matplotlib.pyplot as plt
 from gui.MainGui import *
+from gui.ActionsGui import *
+import cv2
+from ImageProcessing import *
+from PyQt4.QtGui import (QMainWindow, QApplication)
 
-
-#QtGui.QMainWindow
         
-        
-if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
-    w = Ui_MainWindow()
-    w.setupUi(w)
-    w.show()
-    sys.exit(app.exec_())
-        
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    app.exec_()
 
 
 #
 quit()
 
 
-
-import cv2
-from ImageProcessing import *
 
 
 
