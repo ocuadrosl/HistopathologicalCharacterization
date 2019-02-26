@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1227</width>
-    <height>767</height>
+    <height>777</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <widget class="QMdiArea" name="mdiArea">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>220</x>
       <y>40</y>
-      <width>921</width>
+      <width>911</width>
       <height>551</height>
      </rect>
     </property>
@@ -29,8 +29,8 @@
      <rect>
       <x>10</x>
       <y>40</y>
-      <width>171</width>
-      <height>551</height>
+      <width>201</width>
+      <height>581</height>
      </rect>
     </property>
     <property name="widgetResizable">
@@ -41,8 +41,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>169</width>
-       <height>549</height>
+       <width>199</width>
+       <height>579</height>
       </rect>
      </property>
     </widget>
@@ -51,7 +51,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>620</y>
+      <y>630</y>
       <width>921</width>
       <height>80</height>
      </rect>

@@ -1,5 +1,5 @@
 from Highdensity import *
-from FirstLevel import FirstLevel
+from FirstLevel import *
 from PyQt4 import QtCore, QtGui
 import threading
 from ActionsGui import *
@@ -32,7 +32,7 @@ class HighDensity(QtGui.QWidget, Ui_highDensity):
         
         self.firstLevel = FirstLevel()
         
-        self.processButton.clicked.connect(self.process)
+        self.processPushButton.clicked.connect(self.process)
         
     def setMainWindow(self, mainWindow):
         self.mainWindow = mainWindow

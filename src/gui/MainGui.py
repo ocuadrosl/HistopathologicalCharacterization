@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main.ui'
 #
-# Created by: PyQt4 UI code generator 4.12.1
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -25,22 +25,22 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(1227, 767)
+        MainWindow.resize(1227, 777)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.mdiArea = QtGui.QMdiArea(self.centralwidget)
-        self.mdiArea.setGeometry(QtCore.QRect(210, 40, 921, 551))
+        self.mdiArea.setGeometry(QtCore.QRect(220, 40, 911, 551))
         self.mdiArea.setObjectName(_fromUtf8("mdiArea"))
         self.scrollArea = QtGui.QScrollArea(self.centralwidget)
-        self.scrollArea.setGeometry(QtCore.QRect(10, 40, 171, 551))
+        self.scrollArea.setGeometry(QtCore.QRect(10, 40, 201, 581))
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 169, 549))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 199, 579))
         self.scrollAreaWidgetContents.setObjectName(_fromUtf8("scrollAreaWidgetContents"))
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.frame = QtGui.QFrame(self.centralwidget)
-        self.frame.setGeometry(QtCore.QRect(210, 620, 921, 80))
+        self.frame.setGeometry(QtCore.QRect(210, 630, 921, 80))
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtGui.QFrame.Raised)
         self.frame.setObjectName(_fromUtf8("frame"))
