@@ -28,7 +28,7 @@ except AttributeError:
 
 
 from MainGui import Ui_MainWindow
-from FirstLevel import FirstLevel 
+from FirstLevel import * 
 
 
 
@@ -36,7 +36,14 @@ from FirstLevel import FirstLevel
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     
     
-    subwindow = None
+    resultSubwindows = []
+   
+    
+    mainImageSubWindow=None
+    
+    moduleFrame = None
+    
+    vsiFileName = None
         
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)                                         
@@ -44,27 +51,64 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
         #bacis definitions
         
-        self.vsiFileName = ""
+        
        
        
         #Action connections
         self.actionOpen.triggered.connect(self.openImage)
         self.actionHigh_density.triggered.connect(self.highDensityAction)
+        self.resizeEvent = self.rezize
+    
+    
         
-        
-        
+    def rezize(self, args):
+        del args
+        #update modulesFrame size
+        if self.moduleFrame is not None:
+            self.moduleFrame.resize(self.modulesFrame.width(), self.modulesFrame.height())      
    
     def highDensityAction(self):
         
-        frame = HighDensity()
-        frame.setMainWindow(self)
-        frame.fileName = self.vsiFileName
-           
-        self.scrollArea.setWidget(frame)
-        frame.show()
-       
-               
+        if self.moduleFrame is None: 
+            self.moduleFrame = HighDensity(self.modulesFrame)
+            self.moduleFrame.setMainWindow(self)
+            self.moduleFrame.resize(self.modulesFrame.width(), self.modulesFrame.height())    
+            self.moduleFrame.show()
+                
+    
+    def showResultSubWindows(self, images):
         
+        graphicsViews=[]
+        pixmaps = []
+        scenes = []
+        qImages = []
+        
+        for i in range(0, len(images)):
+            self.resultSubwindows.append(QtGui.QMdiSubWindow())
+            self.resultSubwindows[i].setObjectName(_fromUtf8("subwindow_"+str(i)))
+            height, width = images[i].shape 
+           
+            qImages.append(QtGui.QImage(images[i].data, width, height, QtGui.QImage.Format_Indexed8))
+            pixmaps.append(QtGui.QPixmap(qImages[i]))
+                   
+            graphicsViews.append(QtGui.QGraphicsView(self.resultSubwindows[i]))
+            self.mdiArea.addSubWindow(self.resultSubwindows[i])
+            graphicsViews[i].setGeometry(QtCore.QRect(30, 30, width+10, height+10))
+            graphicsViews[i].setObjectName(_fromUtf8("graphicView_"+str(i)))
+            
+            scenes.append(QtGui.QGraphicsScene()) 
+            scenes[i].setSceneRect(QtCore.QRectF(pixmaps[i].rect()))
+            scenes[i].addPixmap(pixmaps[i])
+            graphicsViews[i].setScene(scenes[i])
+            scenes[i].update()
+            
+            self.resultSubwindows[i].resize(width+60,height+60)
+            self.resultSubwindows[i].setWindowTitle(str(i))
+            self.resultSubwindows[i].show()
+        
+       
+        
+            
     
     def openImage(self):
        
@@ -85,11 +129,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         scene.addPixmap(pixmap)
         
         
-        if self.subwindow is None:
-            self.subwindow = QtGui.QMdiSubWindow()
-            self.subwindow.setObjectName(_fromUtf8("Thumbnail"))
-            self.graphicsView = QtGui.QGraphicsView(self.subwindow)
-            self.mdiArea.addSubWindow(self.subwindow)
+        if self.mainImageSubWindow is None:
+            self.mainImageSubWindow = QtGui.QMdiSubWindow()
+            self.mainImageSubWindow.setObjectName(_fromUtf8("Thumbnail"))
+            self.graphicsView = QtGui.QGraphicsView(self.mainImageSubWindow)
+            self.mdiArea.addSubWindow(self.mainImageSubWindow)
        
                      
         self.graphicsView.setGeometry(QtCore.QRect(30, 30, image.width()+10, image.height()+10))
@@ -100,9 +144,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         scene.update()
         
         
-        self.subwindow.resize(image.width()+60, image.height()+60)
-        self.subwindow.setWindowTitle("VSI Thumbnail")
-        self.subwindow.show()
+        self.mainImageSubWindow.resize(image.width()+60, image.height()+60)
+        self.mainImageSubWindow.setWindowTitle("VSI Thumbnail")
+        self.mainImageSubWindow.show()
         
        
         

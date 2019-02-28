@@ -24,6 +24,7 @@ import thread
 import gc
 import PIL as pil
 
+
 '''
 In this class are implemented all methods to identify and categorize 
 regions of interest at lower magnification 
@@ -38,7 +39,7 @@ class FirstLevel:
     roi = []  # Region of interest
     nonROi = []  # non ROI
     
-    def identifyHighDensityLargeSample(self, fileName, radius, outputMagnification, numberOfTilesX, numberOfTilesY, threshold=60):
+    def identifyHighDensityLargeSample(self, fileName, radius, outputMagnification, numberOfTilesX, numberOfTilesY, threshold=60, progressBar = None):
         
         javabridge.start_vm(class_path=bioformats.JARS, run_headless=True, max_heap_size='8G')
         
@@ -119,17 +120,16 @@ class FirstLevel:
                     
                     tileCounter = tileCounter + 1
                                 
-                # free memory               
-                gc.collect()
                 if(y > 0):
                     vMosaicGray = np.concatenate((vMosaicGray, hMosaicGray), axis=0)
                 else:
             
                     vMosaicGray = hMosaicGray
                 
-                hMosaicDensity = []
                 hMosaicGray = []
-                print "processing", str((tileCounter*100)/(numberOfTilesX*numberOfTilesY))+'%'
+                progress = (tileCounter*100)/(numberOfTilesX*numberOfTilesY)
+                print "processing", str(progress)+' %'
+                progressBar.setValue(progress)
             
             vMosaicDensity = self.identifyHighDensityTile(copy.deepcopy(vMosaicGray), radius)
             print "High density computation [ok]"
@@ -283,7 +283,7 @@ class FirstLevel:
     def extractHightDensityRegions(self, densityImage, threshold):
 
 	    ret, hight = cv2.threshold(densityImage, threshold, 255, cv2.THRESH_BINARY)
-	    ret, low = cv2.threshold(densityImage, threhold, 255, cv2.THRESH_BINARY_INV)
+	    ret, low = cv2.threshold(densityImage, threshold, 255, cv2.THRESH_BINARY_INV)
 	    return hight  
 
     '''
