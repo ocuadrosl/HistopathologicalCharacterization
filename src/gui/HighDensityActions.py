@@ -44,6 +44,7 @@ class HighDensity(QtGui.QFrame, Ui_highDensity):
     def process(self):
         if self.mainWindow.vsiFileName is None:
             self.messagesPlainTextEdit.setPlainText("Open a VSI file")
+
             return
         
         self.messagesPlainTextEdit.setPlainText("Processing, please wait")

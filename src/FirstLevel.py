@@ -138,6 +138,7 @@ class FirstLevel:
         finally:
             javabridge.kill_vm()
     
+        #self.writeDensityImage(vMosaicGray, fileName)
         print "succes"
         return (high, low, vMosaicDensity, vMosaicGray)
     
@@ -302,6 +303,17 @@ class FirstLevel:
         cmap = plt.get_cmap('jet')
         cmap.set_bad('white')
         plt.imsave(fileName, image/100.0 , cmap=cmap)
+        ''' 
+        fig = plt.Figure(image)
+        canvas = plt.FigureCanvas(fig/100.0)
+        ax = fig.gca()
+    
+        ax.axis('off')
+
+        canvas.draw()  
+        
+        fig.set_cmap(cmap=cmap)
+        '''
         
     def writeComponentsAsImages(self, mainDir, imageName):
                
@@ -309,7 +321,7 @@ class FirstLevel:
         dirName = mainDir + "/" + imageName + "_" + str(ctime())
         try:
             os.mkdir(dirName)
-        except FileExistsError:
+        except:
             print("Directory " , dirName , " error creating the output directory")
                
         fileName = dirName + "/" + imageName

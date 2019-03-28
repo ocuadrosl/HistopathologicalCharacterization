@@ -10,12 +10,18 @@
     <height>723</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>2</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_3" rowstretch="4,1" columnstretch="0,1,0,3">
-    <item row="0" column="1">
+   <layout class="QGridLayout" name="gridLayout_3" rowstretch="6,1" columnstretch="1,0,0,5">
+    <item row="0" column="0">
      <widget class="QScrollArea" name="scrollArea_2">
       <property name="widgetResizable">
        <bool>true</bool>
@@ -25,8 +31,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>287</width>
-         <height>522</height>
+         <width>191</width>
+         <height>559</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -44,33 +50,7 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="3">
-     <widget class="QScrollArea" name="scrollArea">
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="QWidget" name="scrollAreaWidgetContents_2">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>865</width>
-         <height>522</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
-         <widget class="QMdiArea" name="mdiArea">
-          <property name="viewMode">
-           <enum>QMdiArea::TabbedView</enum>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-    </item>
-    <item row="1" column="3">
+    <item row="1" column="0">
      <widget class="QScrollArea" name="scrollArea_3">
       <property name="widgetResizable">
        <bool>true</bool>
@@ -80,18 +60,39 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>865</width>
-         <height>129</height>
+         <width>191</width>
+         <height>92</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_4">
+       <layout class="QGridLayout" name="gridLayout_4"/>
+      </widget>
+     </widget>
+    </item>
+    <item row="0" column="3" rowspan="2">
+     <widget class="QScrollArea" name="scrollArea">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents_2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>961</width>
+         <height>659</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout" rowstretch="0">
         <item row="0" column="0">
-         <widget class="QFrame" name="frame">
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
+         <widget class="QMdiArea" name="mdiArea">
+          <property name="viewMode">
+           <enum>QMdiArea::SubWindowView</enum>
           </property>
          </widget>
         </item>

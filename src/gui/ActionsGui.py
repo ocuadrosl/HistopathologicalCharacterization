@@ -85,7 +85,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
         for i in range(0, len(images)):
             self.resultSubwindows.append(QtGui.QMdiSubWindow())
-            self.resultSubwindows[i].setObjectName(_fromUtf8("subwindow_"+str(i)))
+
+            self.resultSubwindows[i].setObjectName(_fromUtf8("subWindow_"+str(i)))
+
             height, width = images[i].shape 
            
             qImages.append(QtGui.QImage(images[i].data, width, height, QtGui.QImage.Format_Indexed8))
@@ -138,6 +140,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                      
         self.graphicsView.setGeometry(QtCore.QRect(30, 30, image.width()+10, image.height()+10))
         self.graphicsView.setObjectName(_fromUtf8("graphicsView"))
+        
         
         
         self.graphicsView.setScene(scene)

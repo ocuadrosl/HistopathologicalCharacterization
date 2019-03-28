@@ -8,6 +8,7 @@ import numpy as np
 from bioformats.omexml import OMEXML
 from Utils import *
 from FirstLevel import FirstLevel
+from SecondLevel import SecondLevel
 from LBPFeatures import *
 import matplotlib.pyplot as plt
 from gui.MainGui import *
@@ -15,6 +16,18 @@ from gui.ActionsGui import *
 import cv2
 from ImageProcessing import *
 from PyQt4.QtGui import (QMainWindow, QApplication)
+
+
+
+fileName = "/home/oscar/eclipse-workspace/HistopathologicalCharacterization/input/others/small.png"
+image = cv2.imread(fileName)
+secondLevel = SecondLevel()
+secondLevel.ERSTransform(image, 15)
+
+quit()
+
+
+
 
         
 if __name__ == '__main__':

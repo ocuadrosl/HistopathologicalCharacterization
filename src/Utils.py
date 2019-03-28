@@ -26,3 +26,9 @@ def computeResolution(physicalX, physicalY, sizeX, sizeY, inputMagnification, ou
 def minMax(inputValue, orgMin, orgMax, newMin, newMax):
     den = 0.00000001 if  orgMax == orgMin else orgMax - orgMin 
     return  ((newMax - newMin) * (inputValue - orgMin) / den) + newMin
+
+def cartesianToPolar(coordinates):
+    
+    r = np.sqrt(coordinates[0]**2 + coordinates[1]**2)
+    t = np.arctan2(coordinates[1],coordinates[0])
+    return (r,t) 
