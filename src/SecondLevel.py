@@ -4,6 +4,7 @@ import cv2
 from dask.array.routines import gradient
 import matplotlib.pyplot as plt
 
+
 SMALL_FLOAT = 0.0000000001
 
 
@@ -28,7 +29,7 @@ class SecondLevel:
 		for h in range(0 + radius, height - radius):
 			for w in range(0 + radius, width - radius): 
 				
-				neighborhood = imageGray[h - radius:h + radius, w - radius:w + radius]
+				neighborhood =  np.array(imageGray[h - radius:h + radius, w - radius:w + radius], dtype=float)
 				
 				# eight directions (x,y) in cartesian coordinates
 				
@@ -40,7 +41,7 @@ class SecondLevel:
 				gradientMin[h, w, 0] = minValue
 				positionsMax[h, w, 0] = list(gradient).index(maxValue)
 				positionsMin[h, w, 0] = list(gradient).index(minValue)
-					
+				
 				
 				# direction 5 (-1,0)
 				gradient = np.gradient(neighborhood[radius, 0:radius])
@@ -50,6 +51,8 @@ class SecondLevel:
 				gradientMin[h, w, 4] = minValue
 				positionsMax[h, w, 4] = list(gradient).index(maxValue)
 				positionsMin[h, w, 4] = list(gradient).index(minValue)
+				
+				
 				
 				
 				# direction 7 (0,1)
@@ -100,7 +103,7 @@ class SecondLevel:
 				gradientMin[h, w, 7] = minValue
 				positionsMax[h, w, 7] = list(gradient).index(maxValue)
 				positionsMin[h, w, 7] = list(gradient).index(minValue)
-							
+					
 				
 				# direction 4 (1,-1)
 				gradient = np.gradient(np.flip(neighborhood, 0).diagonal()[radius:radius * 2])
@@ -127,7 +130,7 @@ class SecondLevel:
 		uniformity = np.zeros((height, width), np.float64)
 		
 		
-		test = np.zeros((height, width, 1),  np.float64)
+		test = np.zeros((height, width),  np.float64)
 		
 		for h in range(0 + radius, height - radius):
 			for w in range(0 + radius, width - radius):
@@ -147,17 +150,19 @@ class SecondLevel:
 				meanTmpMax = self.mean(h, w, positionsMax)
 				meanTmpMin = self.mean(h, w, positionsMin)
 				
+				print sigmaMaxTmp
+				
 				#avoid division by zero
 				meanTmpMax = meanTmpMax if meanTmpMax > 0 else SMALL_FLOAT
 				meanTmpMin = meanTmpMin if meanTmpMin > 0 else SMALL_FLOAT
+				
 				uniformity[h, w] = (sigmaMaxTmp / meanTmpMax) + (sigmaMinTmp / meanTmpMin) 
 											
 				test[h, w] = uniformity[h, w] + strength[h, w] + symmetry[h, w]
 			
-		test = np.ma.masked_where(test == 0, test)
-		cmap = plt.get_cmap('hot')
-		cmap.set_bad('white')
-		
+		#test = np.ma.masked_where(test < 0.0, test)
+		cmap = plt.get_cmap('jet')
+		#cmap.set_bad('white')
 		plt.imshow(test, cmap=cmap)
 		plt.show()
 				
@@ -182,5 +187,6 @@ class SecondLevel:
 		return float(sum(function[h, w, :])) / 8.0
 	
 	def sigma(self, h, w, positions):
+		
 		return  (float(sum(positions[h, w, :])) - self.mean(h, w, positions)) / 8.0
 		
