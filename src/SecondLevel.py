@@ -4,7 +4,6 @@ import cv2
 from dask.array.routines import gradient
 import matplotlib.pyplot as plt
 
-
 SMALL_FLOAT = 0.0000000001
 
 
@@ -29,7 +28,7 @@ class SecondLevel:
 		for h in range(0 + radius, height - radius):
 			for w in range(0 + radius, width - radius): 
 				
-				neighborhood =  np.array(imageGray[h - radius:h + radius, w - radius:w + radius], dtype=float)
+				neighborhood = np.array(imageGray[h - radius:h + radius, w - radius:w + radius], dtype=float)
 				
 				# eight directions (x,y) in cartesian coordinates
 				
@@ -42,7 +41,6 @@ class SecondLevel:
 				positionsMax[h, w, 0] = list(gradient).index(maxValue)
 				positionsMin[h, w, 0] = list(gradient).index(minValue)
 				
-				
 				# direction 5 (-1,0)
 				gradient = np.gradient(neighborhood[radius, 0:radius])
 				maxValue = max(gradient)
@@ -51,10 +49,7 @@ class SecondLevel:
 				gradientMin[h, w, 4] = minValue
 				positionsMax[h, w, 4] = list(gradient).index(maxValue)
 				positionsMin[h, w, 4] = list(gradient).index(minValue)
-				
-				
-				
-				
+			
 				# direction 7 (0,1)
 				gradient = np.gradient(neighborhood[0:radius, radius])
 				maxValue = max(gradient)
@@ -64,7 +59,6 @@ class SecondLevel:
 				positionsMax[h, w, 6] = list(gradient).index(maxValue)
 				positionsMin[h, w, 6] = list(gradient).index(minValue)
 				
-				
 				# direction 3 (0,-1)
 				gradient = np.gradient(neighborhood[radius:radius * 2, radius])
 				maxValue = max(gradient)
@@ -73,7 +67,6 @@ class SecondLevel:
 				gradientMin[h, w, 2] = minValue
 				positionsMax[h, w, 2] = list(gradient).index(maxValue)
 				positionsMin[h, w, 2] = list(gradient).index(minValue)
-				
 								
 				# direction 6 (-1,1)
 				gradient = np.gradient(neighborhood.diagonal()[0:radius])
@@ -84,7 +77,6 @@ class SecondLevel:
 				positionsMax[h, w, 5] = list(gradient).index(maxValue)
 				positionsMin[h, w, 5] = list(gradient).index(minValue)
 				
-				
 				# direction 2 (-1,1)
 				gradient = np.gradient(neighborhood.diagonal()[radius:radius * 2])
 				maxValue = max(gradient)
@@ -94,7 +86,6 @@ class SecondLevel:
 				positionsMax[h, w, 1] = list(gradient).index(maxValue)
 				positionsMin[h, w, 1] = list(gradient).index(minValue)
 				
-				
 				# direction 8 (1,1)
 				gradient = np.gradient(np.flip(neighborhood, 0).diagonal()[0:radius])
 				maxValue = max(gradient)
@@ -103,7 +94,6 @@ class SecondLevel:
 				gradientMin[h, w, 7] = minValue
 				positionsMax[h, w, 7] = list(gradient).index(maxValue)
 				positionsMin[h, w, 7] = list(gradient).index(minValue)
-					
 				
 				# direction 4 (1,-1)
 				gradient = np.gradient(np.flip(neighborhood, 0).diagonal()[radius:radius * 2])
@@ -116,8 +106,8 @@ class SecondLevel:
 				
 		print 'Computing gradients [OK]' 
 				
-		#cv2.imshow("gradient 1", positionsMin[:, :, 2])
-		#cv2.waitKey(0)
+		# cv2.imshow("gradient 1", positionsMin[:, :, 2])
+		# cv2.waitKey(0)
 		# cv2.imshow("gradient 1", test)				
 		# cv2.waitKey(0)
 		self.quantities(gradientMax, gradientMin, positionsMax, positionsMin, radius)
@@ -129,64 +119,75 @@ class SecondLevel:
 		strength = np.zeros((height, width), np.float64)
 		uniformity = np.zeros((height, width), np.float64)
 		
+		# to avoid reiterative computations, strenght function
+		minGradientsAbs = np.absolute(minGradients)
+		maxGradientsAbs = np.absolute(maxGradients)
 		
-		test = np.zeros((height, width),  np.float64)
+		test = np.zeros((height, width), np.float64)
 		
 		for h in range(0 + radius, height - radius):
 			for w in range(0 + radius, width - radius):
 				
-				# symmetry
-				meanMax = [self.delta(h, w, maxGradients, 0), self.delta(h, w, maxGradients, 1), self.delta(h, w, maxGradients, 2), self.delta(h, w, maxGradients, 3)]
-				meanMin = [self.delta(h, w, minGradients, 0), self.delta(h, w, minGradients, 1), self.delta(h, w, minGradients, 2), self.delta(h, w, minGradients, 3)]
-				symmetry[h, w] = np.mean(meanMax) + np.mean(meanMin)
-				
+				# symmetry, unit test [ok]
+				deltasMax = [self.delta(h, w, maxGradients, 0), self.delta(h, w, maxGradients, 1), self.delta(h, w, maxGradients, 2), self.delta(h, w, maxGradients, 3)]
+				deltasMin = [self.delta(h, w, minGradients, 0), self.delta(h, w, minGradients, 1), self.delta(h, w, minGradients, 2), self.delta(h, w, minGradients, 3)]
+				symmetry[h, w] = np.mean(deltasMax) + np.mean(deltasMin)
+						
 				# strength
-				sumMeansTmp = (self.mean(h, w, maxGradients) + self.mean(h, w, minGradients));
-				strength[h, w] = 1.0 / (sumMeansTmp if  sumMeansTmp > 0.0 else SMALL_FLOAT)  # to avoid division by zero 
+				# sumMeansTmp = (self.mean(h, w, maxGradientsAbs) + self.mean(h, w, minGradientsAbs));
+				sumMeansTmp = np.mean(maxGradientsAbs[h, w, :]) + np.mean(minGradientsAbs[h, w, :]) 
+				strength[h, w] = 1.0 / (sumMeansTmp if  sumMeansTmp != 0.0 else SMALL_FLOAT)  # to avoid division by zero 
+				
+				# print maxGradients[h,w,:], minGradients[h,w,:], strength[h, w]
 				
 				# uniformity
-				sigmaMaxTmp = self.sigma(h, w, positionsMax)
-				sigmaMinTmp = self.sigma(h, w, positionsMin)
-				meanTmpMax = self.mean(h, w, positionsMax)
-				meanTmpMin = self.mean(h, w, positionsMin)
+				sigmaMaxTmp = self.sigma(positionsMax[h, w, :])
+				sigmaMinTmp = self.sigma(positionsMin[h, w, :])
+				meanTmpMax = np.mean(positionsMax[h, w, :])
+				meanTmpMin = np.mean(positionsMin[h, w, :])
 				
-				print sigmaMaxTmp
+				# meanTmpMax = self.mean(h, w, positionsMax)
+				# meanTmpMin = self.mean(h, w, positionsMin)
 				
-				#avoid division by zero
-				meanTmpMax = meanTmpMax if meanTmpMax > 0 else SMALL_FLOAT
-				meanTmpMin = meanTmpMin if meanTmpMin > 0 else SMALL_FLOAT
+				# print sigmaMaxTmp
+				
+				# avoid division by zero
+				meanTmpMax = meanTmpMax if meanTmpMax != 0.0 else SMALL_FLOAT
+				meanTmpMin = meanTmpMin if meanTmpMin != 0.0 else SMALL_FLOAT
 				
 				uniformity[h, w] = (sigmaMaxTmp / meanTmpMax) + (sigmaMinTmp / meanTmpMin) 
 											
 				test[h, w] = uniformity[h, w] + strength[h, w] + symmetry[h, w]
 			
-		#test = np.ma.masked_where(test < 0.0, test)
-		cmap = plt.get_cmap('jet')
-		#cmap.set_bad('white')
-		plt.imshow(test, cmap=cmap)
-		plt.show()
-				
 		
-		#cv2.imshow("gradient 1", test)
-		#cv2.waitKey(0)
-		
-		
+		imageTmp = np.zeros((height, width), np.float64)+255.0
+		for i in range(0,20):
+			imageTmp[np.where(test == np.max(test))] = 0.0
+			test[np.where(test == np.max(test))] = np.min(test)
 			
-	# using the paper notation
+		
+		cv2.imshow("gradient 1", imageTmp)
+		cv2.waitKey(0)  
+		
+		# test = np.ma.masked_where(test < 0.0, test)
+		#cmap = plt.get_cmap('jet')
+		# cmap.set_bad('white')
+		#plt.imshow(test, cmap=cmap)
+		#plt.show()
+		
+		# cv2.imshow("gradient 1", test)
+		# cv2.waitKey(0)
+			
+	'''
+	using the paper notation
+	'''
 	def delta(self, h, w, gradientJ, k):
-		
 		minTmp = min(gradientJ[h, w, k], gradientJ[h, w, k + 4])
-		return (max(gradientJ[h, w, k], gradientJ[h, w, k + 4]) / (minTmp if minTmp > 0.0 else SMALL_FLOAT)) - 1.0  # to avoid division by zero
+		return (max(gradientJ[h, w, k], gradientJ[h, w, k + 4]) / (minTmp if minTmp != 0.0 else SMALL_FLOAT)) - 1.0  # to avoid division by zero
 	
 	'''
-	using paper notation
-	var function  = gradient or position
+	Discretize version of equation (4) -> sigma function
 	'''
-
-	def  mean(self, h, w, function):
-		return float(sum(function[h, w, :])) / 8.0
-	
-	def sigma(self, h, w, positions):
-		
-		return  (float(sum(positions[h, w, :])) - self.mean(h, w, positions)) / 8.0
+	def sigma(self, positions):
+		return  (float(np.absolute(sum(positions - np.mean(positions))))) / 8.0
 		
