@@ -22,7 +22,7 @@ from PyQt4.QtGui import (QMainWindow, QApplication)
 fileName = "/home/oscar/eclipse-workspace/HistopathologicalCharacterization/input/others/sintetic.tiff"
 image = cv2.imread(fileName)
 secondLevel = SecondLevel()
-secondLevel.ERSTransform(image, 30)
+secondLevel.ERSTransform(image, 15)
 
 quit()
 
