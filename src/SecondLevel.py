@@ -19,10 +19,9 @@ class SecondLevel:
 		
 		# H, W, \, /
 		self.gradients = np.zeros((height, width, 4), np.float64)  
-				
 		
-		self.gradients[:, :, 0] = np.gradient(imageGray, axis=1)
-		self.gradients[:, :, 1] = np.gradient(imageGray, axis=0)
+		self.gradients[:, :, 1] = np.gradient(imageGray, axis=1)
+		self.gradients[:, :, 0] = np.gradient(imageGray, axis=0)
 		
 		for i in range(0, width):
 			diagonalTmp = np.diagonal(imageGray, i)
@@ -37,7 +36,6 @@ class SecondLevel:
 				gradientInferior = np.gradient(diagonalTmp)
 				for j in range(0, len(gradientInferior)):
 					self.gradients[i + j, j, 2] = gradientInferior[j]
-					
 			
 		gradientDiag2Tmp = np.zeros((width, height), np.float64)  # \
 		imageGrayRotated = np.rot90(imageGray, 1)
@@ -61,7 +59,8 @@ class SecondLevel:
 		
 		print 'Computing gradients [OK]' 
 		
-		
+		# plt.imshow(self.gradients[:, :, 1], cmap='jet')
+		# plt.show()
 
 	'''
 	@gradients is a [h,w,4]-dimention matrix
@@ -73,7 +72,6 @@ class SecondLevel:
 		imageGray = cv2.cvtColor(inputImage, cv2.COLOR_BGR2GRAY)
 				
 		self.computeGradients(imageGray)
-		
 		
 		height, width = imageGray.shape  
 		
@@ -90,7 +88,6 @@ class SecondLevel:
 				
 				neighborhood = np.array(self.gradients[h - radius:h + radius, w - radius:w + radius], dtype=float)
 				
-				
 				# eight directions (x,y) in cartesian coordinates
 				
 				# direction 1 (1,0)
@@ -102,7 +99,6 @@ class SecondLevel:
 				positionsMax[h, w, 0] = list(gradient).index(maxValue)
 				positionsMin[h, w, 0] = list(gradient).index(minValue)
 				
-				
 				# direction 5 (-1,0)
 				gradient = neighborhood[radius, 0:radius, 1]
 				maxValue = max(gradient)
@@ -111,7 +107,6 @@ class SecondLevel:
 				gradientMin[h, w, 4] = minValue
 				positionsMax[h, w, 4] = list(gradient).index(maxValue)
 				positionsMin[h, w, 4] = list(gradient).index(minValue)
-			
 				
 				# direction 7 (0,1)
 				gradient = neighborhood[0:radius, radius, 0]
@@ -131,9 +126,8 @@ class SecondLevel:
 				positionsMax[h, w, 2] = list(gradient).index(maxValue)
 				positionsMin[h, w, 2] = list(gradient).index(minValue)
 								
-								
 				# direction 6 (-1,1)
-				gradient = neighborhood[:,:,2].diagonal()[0:radius]
+				gradient = neighborhood[:, :, 2].diagonal()[0:radius]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 5] = maxValue
@@ -142,7 +136,7 @@ class SecondLevel:
 				positionsMin[h, w, 5] = list(gradient).index(minValue)
 				
 				# direction 2 (-1,1)
-				gradient = neighborhood[:,:,2].diagonal()[radius:radius * 2]
+				gradient = neighborhood[:, :, 2].diagonal()[radius:radius * 2]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 1] = maxValue
@@ -151,7 +145,7 @@ class SecondLevel:
 				positionsMin[h, w, 1] = list(gradient).index(minValue)
 				
 				# direction 8 (1,1)
-				gradient = np.flip(neighborhood, 0)[:,:,3].diagonal()[0:radius]
+				gradient = np.flip(neighborhood, 0)[:, :, 3].diagonal()[0:radius]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 7] = maxValue
@@ -160,22 +154,48 @@ class SecondLevel:
 				positionsMin[h, w, 7] = list(gradient).index(minValue)
 				
 				# direction 4 (1,-1)
-				gradient = np.flip(neighborhood, 0)[:,:,3].diagonal()[radius:radius * 2]
+				gradient = np.flip(neighborhood, 0)[:, :, 3].diagonal()[radius:radius * 2]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 3] = maxValue
 				gradientMin[h, w, 3] = minValue
 				positionsMax[h, w, 3] = list(gradient).index(maxValue)
 				positionsMin[h, w, 3] = list(gradient).index(minValue)
+				# print positionsMin[h, w, 3]
+		
+		# plt.imshow(gradientMax[:, :, 3], cmap='jet')
+		# plt.show()
+		
+		# self.quantities(gradientMax, gradientMin, positionsMax, positionsMin, radius)
+		
+		# my quantities
+		self.myQuantities(gradientMax, gradientMin)
+		
+	def myQuantities(self, gmax, gmin):
+			
+		height, width = gmax[:, :, 0].shape 
+		
+		max = np.zeros((height, width), np.float64)
+		min = np.zeros((height, width), np.float64)
+		
+		for h in range(0, height):
+			for w in range(0, width):
 				
-						
-		#cv2.imshow("gradient 1", gradientMax[:, :, 3])
-		#cv2.waitKey(0)
-		# cv2.imshow("gradient 1", test)				
-		# cv2.waitKey(0)
+				max[h, w] = np.sum(gmax[h, w, :])
+				min[h, w] = np.sum(gmin[h, w, :])	
 		
 		
-		self.quantities(gradientMax, gradientMin, positionsMax, positionsMin, radius)
+		
+		test = min + max
+		
+		print np.min(test), np.max(max)
+		
+		test = np.ma.masked_where(test >800, test)
+		cmap = plt.get_cmap('jet')
+		cmap.set_bad('white')
+		plt.imshow(test, cmap=cmap)
+		plt.show()
+	
 	
 	def quantities(self, maxGradients, minGradients, positionsMax, positionsMin, radius):
 		height, width = maxGradients[:, :, 0].shape  
@@ -187,9 +207,7 @@ class SecondLevel:
 		# to avoid reiterative computations, strenght function
 		minGradientsAbs = np.absolute(minGradients)
 		maxGradientsAbs = np.absolute(maxGradients)
-		
-		test = np.zeros((height, width), np.float64)
-		
+				
 		for h in range(0 + radius, height - radius):
 			for w in range(0 + radius, width - radius):
 				
@@ -205,9 +223,9 @@ class SecondLevel:
 				
 				# print maxGradients[h,w,:], minGradients[h,w,:], strength[h, w]
 				
-				# uniformity
-				sigmaMaxTmp = self.sigma(positionsMax[h, w, :])
-				sigmaMinTmp = self.sigma(positionsMin[h, w, :])
+				# uniformity [ok]
+				sigmaMaxTmp = self.averageDeviation(positionsMax[h, w, :])
+				sigmaMinTmp = self.averageDeviation(positionsMin[h, w, :])
 				meanTmpMax = np.mean(positionsMax[h, w, :])
 				meanTmpMin = np.mean(positionsMin[h, w, :])
 				
@@ -222,43 +240,47 @@ class SecondLevel:
 				
 				uniformity[h, w] = (sigmaMaxTmp / meanTmpMax) + (sigmaMinTmp / meanTmpMin) 
 				
-				#test[h, w] = uniformity[h, w] + strength[h, w] + symmetry[h, w]
+				# test[h, w] = uniformity[h, w] + strength[h, w] + symmetry[h, w]
 		
 		'''imageTmp = np.zeros((height, width), np.float64)+255.0
 		for i in range(0,20):
 			imageTmp[np.where(test == np.max(test))] = 0.0
 			test[np.where(test == np.max(test))] = np.min(test)
 		'''	
-		uniformity = minMax(uniformity, np.min(uniformity), np.max(uniformity), 0.0, 255.0)
-		strength = minMax(strength, np.min(strength), np.max(strength), 0.0, 255.0)
-		symmetry = minMax(symmetry, np.min(symmetry), np.max(symmetry), 0.0, 255.0)	
+		uniformity = minMax(uniformity, np.min(uniformity), np.max(uniformity), 0.0, 1.0)
+		strength = minMax(strength, np.min(strength), np.max(strength), 0.0, 1.0)
+		symmetry = minMax(symmetry, np.min(symmetry), np.max(symmetry), 0.0, 1.0)	
 		
 		test = uniformity + strength + symmetry
 		
-		cv2.imshow("gradient 1", test)
-		cv2.waitKey(0)  
+		# cv2.imshow("gradient 1", test)
+		# cv2.waitKey(0)  
 		
 		# test = np.ma.masked_where(test < 0.0, test)
-		# cmap = plt.get_cmap('jet')
+		cmap = plt.get_cmap('jet')
 		# cmap.set_bad('white')
-		# plt.imshow(test, cmap=cmap)
-		# plt.show()
+		plt.imshow(test, cmap=cmap)
+		plt.show()
 		
 		# cv2.imshow("gradient 1", test)
 		# cv2.waitKey(0)
 			
 	'''
 	using the paper notation
+	@matrix is a [h,w,8]-dimensional matrix 
 	'''
 
-	def delta(self, h, w, gradientJ, k):
-		minTmp = min(gradientJ[h, w, k], gradientJ[h, w, k + 4])
-		return (max(gradientJ[h, w, k], gradientJ[h, w, k + 4]) / (minTmp if minTmp != 0.0 else SMALL_FLOAT)) - 1.0  # to avoid division by zero
+	def delta(self, h, w, matrix, k):
+		minTmp = min(matrix[h, w, k], matrix[h, w, k + 4])
+		return (max(matrix[h, w, k], matrix[h, w, k + 4]) / (minTmp if minTmp != 0.0 else SMALL_FLOAT)) - 1.0  # to avoid division by zero
 	
 	'''
 	Discretize version of equation (4) -> sigma function
+	
 	'''
 
-	def sigma(self, positions):
-		return  (float(np.absolute(sum(positions - np.mean(positions))))) / 8.0
+	def averageDeviation(self, values):
 		
+		meanTmp = np.mean(values)
+		return np.mean(np.abs(values - meanTmp))
+
