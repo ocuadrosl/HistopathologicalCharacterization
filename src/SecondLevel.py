@@ -1,10 +1,11 @@
 import numpy as np
 from Utils import *
 import cv2
-from dask.array.routines import gradient
+# from dask.array.routines import gradient
 import matplotlib.pyplot as plt
 
 SMALL_FLOAT = 0.0000000001
+SIN45 = 0.70710678118  #  in degrees
 
 
 class SecondLevel:
@@ -17,13 +18,13 @@ class SecondLevel:
 		
 		height, width = imageGray.shape  
 		
-		# H, W, \, /
+		# --, |, \, /
 		self.gradients = np.zeros((height, width, 4), np.float64)  
 		
-		self.gradients[:, :, 1] = np.gradient(imageGray, axis=1)
-		self.gradients[:, :, 0] = np.gradient(imageGray, axis=0)
+		self.gradients[:, :, 1] = np.gradient(imageGray, axis=1)  # horizontal
+		self.gradients[:, :, 0] = np.gradient(imageGray, axis=0)  # vertical
 		
-		for i in range(0, width):
+		for i in range(0, width):  # \
 			diagonalTmp = np.diagonal(imageGray, i)
 			if len(diagonalTmp) > 1:
 				gradientSuperior = np.gradient(diagonalTmp)	
@@ -37,7 +38,7 @@ class SecondLevel:
 				for j in range(0, len(gradientInferior)):
 					self.gradients[i + j, j, 2] = gradientInferior[j]
 			
-		gradientDiag2Tmp = np.zeros((width, height), np.float64)  # \
+		gradientDiag2Tmp = np.zeros((width, height), np.float64)  # /
 		imageGrayRotated = np.rot90(imageGray, 1)
 		height, width = imageGrayRotated.shape 
 		
@@ -59,7 +60,7 @@ class SecondLevel:
 		
 		print 'Computing gradients [OK]' 
 		
-		# plt.imshow(self.gradients[:, :, 1], cmap='jet')
+		# plt.imshow(self.gradients[:, :, 3], cmap='jet')
 		# plt.show()
 
 	'''
@@ -86,12 +87,17 @@ class SecondLevel:
 		for h in range(0 + radius, height - radius):
 			for w in range(0 + radius, width - radius): 
 				
-				neighborhood = np.array(self.gradients[h - radius:h + radius, w - radius:w + radius], dtype=float)
+				neighborhood = np.array(self.gradients[h - radius:h + radius, w - radius:w + radius, :], dtype=float)
 				
-				# eight directions (x,y) in cartesian coordinates
+				# eight directions (x,y) in Cartesian coordinates
+				#
+				# x = 0
+				# y = 1
+				# \ = 2
+				# / = 3
 				
-				# direction 1 (1,0)
-				gradient = neighborhood[radius, radius:radius * 2, 1]
+				# direction 1 ->
+				gradient = neighborhood[radius, radius:radius * 2, 0]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 0] = maxValue
@@ -99,8 +105,8 @@ class SecondLevel:
 				positionsMax[h, w, 0] = list(gradient).index(maxValue)
 				positionsMin[h, w, 0] = list(gradient).index(minValue)
 				
-				# direction 5 (-1,0)
-				gradient = neighborhood[radius, 0:radius, 1]
+				# direction 5 <-
+				gradient = neighborhood[radius, 0:radius, 0]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 4] = maxValue
@@ -108,8 +114,8 @@ class SecondLevel:
 				positionsMax[h, w, 4] = list(gradient).index(maxValue)
 				positionsMin[h, w, 4] = list(gradient).index(minValue)
 				
-				# direction 7 (0,1)
-				gradient = neighborhood[0:radius, radius, 0]
+				# direction ^
+				gradient = neighborhood[0:radius, radius, 1]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 6] = maxValue
@@ -117,8 +123,8 @@ class SecondLevel:
 				positionsMax[h, w, 6] = list(gradient).index(maxValue)
 				positionsMin[h, w, 6] = list(gradient).index(minValue)
 				
-				# direction 3 (0,-1)
-				gradient = neighborhood[radius:radius * 2, radius, 0]
+				# direction 3 v
+				gradient = neighborhood[radius:radius * 2, radius, 1]
 				maxValue = max(gradient)
 				minValue = min(gradient)
 				gradientMax[h, w, 2] = maxValue
@@ -126,7 +132,7 @@ class SecondLevel:
 				positionsMax[h, w, 2] = list(gradient).index(maxValue)
 				positionsMin[h, w, 2] = list(gradient).index(minValue)
 								
-				# direction 6 (-1,1)
+				# direction 6 ^\
 				gradient = neighborhood[:, :, 2].diagonal()[0:radius]
 				maxValue = max(gradient)
 				minValue = min(gradient)
@@ -135,7 +141,7 @@ class SecondLevel:
 				positionsMax[h, w, 5] = list(gradient).index(maxValue)
 				positionsMin[h, w, 5] = list(gradient).index(minValue)
 				
-				# direction 2 (-1,1)
+				# direction 2 \v
 				gradient = neighborhood[:, :, 2].diagonal()[radius:radius * 2]
 				maxValue = max(gradient)
 				minValue = min(gradient)
@@ -144,7 +150,7 @@ class SecondLevel:
 				positionsMax[h, w, 1] = list(gradient).index(maxValue)
 				positionsMin[h, w, 1] = list(gradient).index(minValue)
 				
-				# direction 8 (1,1)
+				# direction 8 /^
 				gradient = np.flip(neighborhood, 0)[:, :, 3].diagonal()[0:radius]
 				maxValue = max(gradient)
 				minValue = min(gradient)
@@ -153,7 +159,7 @@ class SecondLevel:
 				positionsMax[h, w, 7] = list(gradient).index(maxValue)
 				positionsMin[h, w, 7] = list(gradient).index(minValue)
 				
-				# direction 4 (1,-1)
+				# direction 4 v/
 				gradient = np.flip(neighborhood, 0)[:, :, 3].diagonal()[radius:radius * 2]
 				maxValue = max(gradient)
 				minValue = min(gradient)
@@ -161,41 +167,46 @@ class SecondLevel:
 				gradientMin[h, w, 3] = minValue
 				positionsMax[h, w, 3] = list(gradient).index(maxValue)
 				positionsMin[h, w, 3] = list(gradient).index(minValue)
-				# print positionsMin[h, w, 3]
+				
+				
+		print 'Computing max and min points [OK]' 
 		
-		# plt.imshow(gradientMax[:, :, 3], cmap='jet')
-		# plt.show()
-		
+				
 		# self.quantities(gradientMax, gradientMin, positionsMax, positionsMin, radius)
 		
 		# my quantities
-		self.myQuantities(gradientMax, gradientMin)
+		areas  = self.myQuantities(positionsMax, positionsMin)
+		inputImage[np.where(areas>20)]=0
+		cv2.imshow('image', inputImage)
+		cv2.waitKey(0)
 		
-	def myQuantities(self, gmax, gmin):
+		
+		
+	def myQuantities(self, positionsMax, positionsMin):
 			
-		height, width = gmax[:, :, 0].shape 
+		height, width = positionsMax[:, :, 0].shape
 		
-		max = np.zeros((height, width), np.float64)
-		min = np.zeros((height, width), np.float64)
+		areasMax = np.zeros((height, width), np.float32)
+		areasMin = np.zeros((height, width), np.float32)
+		areas = np.zeros((height, width), np.float32)
 		
 		for h in range(0, height):
 			for w in range(0, width):
+				for i in range(0, 8):
+					next = i + 1 if i < 7 else 0
+					#print i, next, positionsMax[h, w, i],  positionsMax[h, w, next] , ((positionsMax[h, w, i] * positionsMax[h, w, next] * SIN45) / 2.0)				
+					areasMax[h, w] = areasMax[h, w] + ((positionsMax[h, w, i] * positionsMax[h, w, next] * SIN45) / 2.0)
+					areasMin[h, w] = areasMin[h, w] + ((positionsMin[h, w, i] * positionsMin[h, w, next] * SIN45) / 2.0)
+					areas[h, w] = np.abs(areasMax[h, w] - areasMin[h, w]) 
 				
-				max[h, w] = np.sum(gmax[h, w, :])
-				min[h, w] = np.sum(gmin[h, w, :])	
-		
-		
-		
-		test = min + max
-		
-		print np.min(test), np.max(max)
-		
-		test = np.ma.masked_where(test >800, test)
+				# print areas[h,w]
+		# areas = np.ma.masked_where(areas < 50, areas)
 		cmap = plt.get_cmap('jet')
-		cmap.set_bad('white')
-		plt.imshow(test, cmap=cmap)
+		# cmap.set_bad('white')
+		plt.imshow(areasMax, cmap=cmap)
 		plt.show()
-	
+		
+		return areas
 	
 	def quantities(self, maxGradients, minGradients, positionsMax, positionsMin, radius):
 		height, width = maxGradients[:, :, 0].shape  
