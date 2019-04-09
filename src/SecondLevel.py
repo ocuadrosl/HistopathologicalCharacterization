@@ -4,7 +4,8 @@ import cv2
 # from dask.array.routines import gradient
 import matplotlib.pyplot as plt
 
-SMALL_FLOAT = 0.0000000001
+SMALL_FLOAT = 0.00001
+BIG_NUMBER = 999999999
 SIN45 = 0.70710678118  #  in degrees
 
 
@@ -68,9 +69,9 @@ class SecondLevel:
 		
 	'''	
 
-	def ERSTransform(self, inputImage, radius=1):
+	def ERSTransform(self, imageGray, radius=1):
 		
-		imageGray = cv2.cvtColor(inputImage, cv2.COLOR_BGR2GRAY)
+		#imageGray = cv2.cvtColor(inputImage, cv2.COLOR_BGR2GRAY)
 				
 		self.computeGradients(imageGray)
 		
@@ -168,46 +169,54 @@ class SecondLevel:
 				positionsMax[h, w, 3] = list(gradient).index(maxValue)
 				positionsMin[h, w, 3] = list(gradient).index(minValue)
 				
-				
 		print 'Computing max and min points [OK]' 
-		
 				
 		# self.quantities(gradientMax, gradientMin, positionsMax, positionsMin, radius)
 		
 		# my quantities
-		areas  = self.myQuantities(positionsMax, positionsMin)
-		inputImage[np.where(areas>20)]=0
-		cv2.imshow('image', inputImage)
-		cv2.waitKey(0)
+		self.myQuantities(positionsMax, positionsMin, gradientMax, gradientMin)
 		
-		
-		
-	def myQuantities(self, positionsMax, positionsMin):
+	def myQuantities(self, positionsMax, positionsMin, gradientMax, gradientMin):
 			
 		height, width = positionsMax[:, :, 0].shape
 		
-		areasMax = np.zeros((height, width), np.float32)
-		areasMin = np.zeros((height, width), np.float32)
+		areasMax = np.zeros(8, np.float32)
+		areasMin = np.zeros(8, np.float32)
 		areas = np.zeros((height, width), np.float32)
+		strength = np.zeros((height, width), np.float32)
+		rank = np.zeros((height, width), np.float32)
+		
+		minGradientsAbs = np.absolute(gradientMin)
+		maxGradientsAbs = np.absolute(gradientMax)
 		
 		for h in range(0, height):
 			for w in range(0, width):
+				# area
 				for i in range(0, 8):
-					next = i + 1 if i < 7 else 0
-					#print i, next, positionsMax[h, w, i],  positionsMax[h, w, next] , ((positionsMax[h, w, i] * positionsMax[h, w, next] * SIN45) / 2.0)				
-					areasMax[h, w] = areasMax[h, w] + ((positionsMax[h, w, i] * positionsMax[h, w, next] * SIN45) / 2.0)
-					areasMin[h, w] = areasMin[h, w] + ((positionsMin[h, w, i] * positionsMin[h, w, next] * SIN45) / 2.0)
-					areas[h, w] = np.abs(areasMax[h, w] - areasMin[h, w]) 
+					nextPoint = i + 1 if i < 7 else 0
+					areasMax[i] = (positionsMax[h, w, i] * positionsMax[h, w, nextPoint] * SIN45) / 2.0
+					areasMin[i] = (positionsMin[h, w, i] * positionsMin[h, w, nextPoint] * SIN45) / 2.0
 				
-				# print areas[h,w]
-		# areas = np.ma.masked_where(areas < 50, areas)
-		cmap = plt.get_cmap('jet')
-		# cmap.set_bad('white')
-		plt.imshow(areasMax, cmap=cmap)
-		plt.show()
+				areasMeanTmp = np.mean(areasMax)
+				areasMaxTmp = np.std(areasMax) / areasMeanTmp if areasMeanTmp > 0.0 else SMALL_FLOAT
+				areasMeanTmp = np.mean(areasMin)   
+				areasMinTmp = np.std(areasMin) / areasMeanTmp if areasMeanTmp > 0.0 else SMALL_FLOAT
+				areas[h, w] = areasMaxTmp + areasMinTmp  # small values points indide 
+					
+					
+				# strength
+				strength[h, w] = np.mean(maxGradientsAbs[h, w, :]) + np.mean(minGradientsAbs[h, w, :]) 
+				#rank[h,w] =  areas[h,w]* strength[h,w] 
+				rank[h,w] =  areas[h,w]+strength[h,w] if strength[h,w] > 0.0 else 0.0 
 		
-		return areas
-	
+		
+		toPlot = rank
+		#toPlot = np.ma.masked_where(toPlot < 50, toPlot)
+		cmap = plt.get_cmap('jet')
+		#cmap.set_bad('white')
+		plt.imshow(toPlot, cmap=cmap)
+		plt.show()
+
 	def quantities(self, maxGradients, minGradients, positionsMax, positionsMin, radius):
 		height, width = maxGradients[:, :, 0].shape  
 		# S quantity, see paper

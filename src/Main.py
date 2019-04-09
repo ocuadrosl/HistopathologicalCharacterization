@@ -18,13 +18,17 @@ from ImageProcessing import *
 from PyQt4.QtGui import (QMainWindow, QApplication)
 
 
-fileName = "/home/aurea/eclipse-workspace/HistopathologicalCharacterization/input/others/test.png"
+fileName = "../input/06960 (1).jpg"
 image = cv2.imread(fileName)
-#gaussianImage = cv2.GaussianBlur(image,(15,15),0)
-#cv2.imshow("gaussian", gaussianImage)
+imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#blur = cv2.GaussianBlur(imageGray,(15,15),0)
+blur = cv2.medianBlur(imageGray, 3)
+inputImage = blur
+#inputImage = inputImage + 127*np.ones(imageGray.shape, np.uint8)
+#cv2.imshow("gaussian", inputImage)
 #cv2.waitKey(0)
 secondLevel = SecondLevel()
-secondLevel.ERSTransform(image, 10)
+secondLevel.ERSTransform(inputImage, 5)
 
 quit()
 
