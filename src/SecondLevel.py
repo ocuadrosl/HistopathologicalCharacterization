@@ -72,8 +72,8 @@ class SecondLevel:
 		axeslist.ravel()[3].imshow(gradients[:, :, 3], cmap=plt.jet())
 		plt.tight_layout()
 		'''
-		#plt.imshow(gradients[:, :, 0] + gradients[:, :, 1] + gradients[:, :, 2] + gradients[:, :, 3], cmap=plt.jet())
-		#plt.show()
+		plt.imshow(gradients[:, :, 0] + gradients[:, :, 1] + gradients[:, :, 2] + gradients[:, :, 3], cmap=plt.jet())
+		plt.show()
 		
 		print 'Computing gradients [OK]'
 		return gradients[:, :, 0] + gradients[:, :, 1] + gradients[:, :, 2] + gradients[:, :, 3]
@@ -203,6 +203,7 @@ class SecondLevel:
 	
 	def histograms(self, gradients, radius):
 		
+		'''
 		h = 504
 		w = 412
 		
@@ -216,59 +217,36 @@ class SecondLevel:
 		
 		height, width = neighborhood.shape
 		result = np.zeros((height, width), np.float32)
+		'''
 		
-		for h in range(0, height/2):
-			for w in range(0, width/2):
-				nW = neighborhood[h,w]
-				#nE = neighborhood[h , width-w-1]
-				#sW = neighborhood[height-h-1, w]
-				sE = neighborhood[height-h-1, width-w-1]
+		height, width = gradients.shape
+		result = np.zeros((height, width), np.float32)
+		for h in range(0, height - radius):
+			for w in range(0, width - radius):
 				
-				result[h, w] = np.abs(nW - sE)
-				result[height-h-1, width-w-1] = result[h, w]
+				index = gradients[h, w]
+				
+				neighborhoodWidth = w + radius
+				neighborhoodHeight = h + radius
+				
+				# nW index
+				for nH in range(h - radius, h):
+					for nW in range(w - radius, w):
+					
+						nE = gradients[h, neighborhoodWidth - nW]
+						sW = gradients[neighborhoodHeight - nH, w]
+						sE = gradients[neighborhoodHeight - nH, neighborhoodWidth - nW]
+						
+						result[h, w] = np.mean((np.abs(index - nE) + np.abs(index - sW) + np.abs(index - sE)))  		
 		
 		
-		for h in range(0, height/2):
-			for w in range(width/2, width):
-				nE = neighborhood[h,w]
-				#nE = neighborhood[h , width-w-1]
-				#sW = neighborhood[height-h-1, w]
-				sW = neighborhood[height-h-1, width-w-1]
-				
-				result[h, w] = np.abs(nE - sW) 
-				result[height-h-1, width-w-1] = result[h, w]
-				
-				
-				
-		plt.imshow(result, cmap = 'jet')
+						
+		plt.imshow(result, cmap='jet')
 		plt.show()		 
-		 	
-		 
-		 
-		
-		
-		
 		
 		return
-		height, width = gradients.shape 
-				
-		gradientMean = np.zeros((height, width), np.float32)
-		gradientStd = np.zeros((height, width), np.float32)
 		
-		# r vectors
-		positionsMean = np.zeros((height, width), np.int32)
-		positionsStd = np.zeros((height, width), np.int32)
-		
-		for h in range(0 + radius, height - radius):
-			for w in range(0 + radius, width - radius): 
-				
-				neighborhood = np.array(gradients[h - radius:h + radius, w - radius:w + radius], np.float32)
-				#hist = np.histogram(neighborhood, bins=255)[0]
-				gradientMean[h, w] = np.mean(neighborhood)
-				# print np.mean(hist)
-				
-		plt.imshow(gradientMean, cmap='jet')
-		plt.show()	
+	
 	
 	def myQuantities(self, positionsMax, positionsMin, gradientMax, gradientMin):
 			

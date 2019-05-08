@@ -36,7 +36,7 @@ blur[np.where(threshold==255)]=255 #aply threshold to blur
 #plt.show()
 
 secondLevel = SecondLevel()
-secondLevel.ERSTransform(blur, 25)
+secondLevel.ERSTransform(blur, 15)
 
 quit()
 
