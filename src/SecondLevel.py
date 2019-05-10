@@ -193,13 +193,13 @@ class SecondLevel:
 		plt.tight_layout()
 		plt.show()
 
-	def ERSTransform(self, image, radius=1):
+	def ERSTransform(self, image, radiusMin=1, radiusMax=1):
 					
-		gradients = self.computeGradients(image)
+		 	# gradients = self.computeGradients(image)
 						
 		# my quantities
-		# self.myQuantities(positionsMax, positionsMin, gradientMax, gradientMin)
-		self.histograms(gradients, radius)
+		self.myQuantities(image, radiusMin)
+		# self.histograms(gradients, radius)
 	
 	def histograms(self, gradients, radius):
 		
@@ -238,60 +238,63 @@ class SecondLevel:
 						sE = gradients[neighborhoodHeight - nH, neighborhoodWidth - nW]
 						
 						result[h, w] = np.mean((np.abs(index - nE) + np.abs(index - sW) + np.abs(index - sE)))  		
-		
-		
 						
 		plt.imshow(result, cmap='jet')
 		plt.show()		 
 		
 		return
-		
 	
-	
-	def myQuantities(self, positionsMax, positionsMin, gradientMax, gradientMin):
+	def myQuantities(self, edges, radius):
 			
-		height, width = positionsMax[:, :, 0].shape
+		height, width = edges.shape
 		
-		areasMax = np.zeros(8, np.float32)
-		areasMin = np.zeros(8, np.float32)
-		areas = np.zeros((height, width), np.float32)
-		strength = np.zeros((height, width), np.float32)
-		uniformity = np.zeros((height, width), np.float32)
-		rank = np.zeros((height, width), np.float32)
-		
-		minGradientsAbs = np.absolute(gradientMin)
-		maxGradientsAbs = np.absolute(gradientMax)
-		
-		for h in range(0, height):
-			for w in range(0, width):
-				# area
-				'''
-				for i in range(0, 8):
-					nextPoint = i + 1 if i < 7 else 0
-					areasMax[i] = (positionsMax[h, w, i] * positionsMax[h, w, nextPoint] * SIN45) / 2.0
-					areasMin[i] = (positionsMin[h, w, i] * positionsMin[h, w, nextPoint] * SIN45) / 2.0
-				'''
+		rank = np.zeros((height, width), np.float64)
+		x = []
+		y = []
+		for h in range(radius, height-radius):
+			for w in range(radius, width-radius):
 				
-				uniformity[h, w] = self.averageDeviation(positionsMax[h, w, :])			
+				neighborhood = np.array(edges[h - radius:h + radius, w - radius:w + radius], dtype=float)
+										
+				pX = -radius
+				pY = radius 
 				
-				'''
-				areasMeanTmp = np.mean(areasMax)
-				areasMaxTmp = np.std(areasMax) / areasMeanTmp if areasMeanTmp > 0.0 else SMALL_FLOAT
-				areasMeanTmp = np.mean(areasMin)   
-				areasMinTmp = np.std(areasMin) / areasMeanTmp if areasMeanTmp > 0.0 else SMALL_FLOAT
-				areas[h, w] = areasMaxTmp + areasMinTmp  # small values points indide 
-				'''
+				for hn in range(0, radius*2):
+					pX = pX + 1
+					for wn in range(0, radius*2):
+						pY = pY - 1;
+						if neighborhood[hn, wn] > 0:
+							#point = matrixToCartesian(hn, wn, neighborhood.shape[0])
+							x.append(pX)
+							y.append(pY)
+			
+					pY = radius			
+									
+				if len(x)>0:
+								
+					t = np.linspace(0.01, 2 * np.pi, len(x))
 					
-				# strength
-				strength[h, w] = np.mean(maxGradientsAbs[h, w, :]) + np.mean(minGradientsAbs[h, w, :]) 
-				# rank[h,w] =  areas[h,w]* strength[h,w] 
-				rank[h, w] = areas[h, w] + strength[h, w] if strength[h, w] > 0.0 else 0.0 
-		
-		toPlot = uniformity
-		# toPlot = np.ma.masked_where(toPlot > 1, toPlot)
+					dx = []
+					dy = []
+					dx = (x - ((radius / 2.0) * np.cos(t))) / np.cos(t);
+					dy = (((radius / 2.0) * np.sin(t)) - y) / np.sin(t);
+					
+					#plt.scatter(x,y)
+					#plt.show()
+													
+					# print np.std(d)
+					rank[h, w] = np.std(dx) + np.std(dy) 
+				
+				x = []
+				y = []
+				t = []
+				
+				# np.std(d)
+				
+		#rank = np.ma.masked_where(rank > 1.0, rank)
 		cmap = plt.get_cmap('jet')
-		# cmap.set_bad('white')
-		plt.imshow(toPlot, cmap=cmap)
+		#cmap.set_bad('white')
+		plt.imshow(rank, cmap=cmap)
 		plt.show()
 	
 	def quantities(self, maxGradients, minGradients, positionsMax, positionsMin, radius):

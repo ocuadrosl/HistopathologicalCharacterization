@@ -17,31 +17,33 @@ import cv2
 from ImageProcessing import *
 from PyQt4.QtGui import (QMainWindow, QApplication)
 
+if __name__ == '__main__':
 
-fileName = "../input/others/small.png"
-image = cv2.imread(fileName)
-imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blur = cv2.GaussianBlur(imageGray,(3,3),0)
-#blur = cv2.medianBlur(imageGray, 3)
-
-threshold = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-blur[np.where(threshold==255)]=255 #aply threshold to blur
-
-#plt.imshow(blur, cmap='jet')
-#plt.show()
-
-#edges = cv2.Canny(blur,0,255)
-
-#plt.imshow(edges, cmap='jet')
-#plt.show()
-
-secondLevel = SecondLevel()
-secondLevel.ERSTransform(blur, 15)
-
-quit()
-
+    fileName = "../input/others/synthetic.tiff"
+    image = cv2.imread(fileName)
+    imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(imageGray,(3,3),0)
+    #blur = cv2.medianBlur(imageGray, 3)
+    
+    threshold = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    blur[np.where(threshold==255)]=255 #aply threshold to blur
+    
+    #plt.imshow(blur, cmap='jet')
+    #plt.show()
+    
+    edges = cv2.Canny(blur,0,255)
+    
+    plt.imshow(edges, cmap='hot')
+    plt.show()
+    
+    
+    secondLevel = SecondLevel()
+    secondLevel.ERSTransform(edges, 20)
 
 
+
+
+'''
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -62,7 +64,6 @@ cv2.imwrite("/home/oscar/eclipse-workspace/HistopathologicalCharacterization/out
 firstLevel.writeDensityImage(density, "/home/oscar/eclipse-workspace/HistopathologicalCharacterization/output/Image01B2046_18 B_colormap.png")
 cv2.imwrite("/home/oscar/eclipse-workspace/HistopathologicalCharacterization/output/Image01B2046_18 B_gray.png" , gray)
 
-'''
 
 ## for small samples
 fileName  = "/home/oscar/src/HistopathologicalCharacterization/input/rp/patient_1/00529 (2).jpg"
