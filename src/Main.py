@@ -18,8 +18,10 @@ from ImageProcessing import *
 from PyQt4.QtGui import (QMainWindow, QApplication)
 
 if __name__ == '__main__':
-
-    fileName = "../input/others/synthetic.tiff"
+    
+    
+    print np.linspace(0.0, (3/2)*np.pi, 7)
+    fileName = "../input/others/synthetic2.png"
     image = cv2.imread(fileName)
     imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(imageGray,(3,3),0)
@@ -33,12 +35,12 @@ if __name__ == '__main__':
     
     edges = cv2.Canny(blur,0,255)
     
-    plt.imshow(edges, cmap='hot')
-    plt.show()
+    #plt.imshow(edges, cmap='hot')
+    #plt.show()
     
     
     secondLevel = SecondLevel()
-    secondLevel.ERSTransform(edges, 20)
+    secondLevel.ERSTransform(edges, 25, 26)
 
 
 

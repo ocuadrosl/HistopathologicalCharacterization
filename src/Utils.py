@@ -41,4 +41,12 @@ def matrixToCartesian(col, row, size):
     
     fraction = ((size / 2) + 1 / 2)
     return (col - fraction, -row + fraction)
+
+#def cartesianToMatrix(x,y,size):
+    
+    
+    
+    
+    
+    
      

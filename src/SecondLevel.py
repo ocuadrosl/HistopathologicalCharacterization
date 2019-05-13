@@ -198,7 +198,7 @@ class SecondLevel:
 		 	# gradients = self.computeGradients(image)
 						
 		# my quantities
-		self.myQuantities(image, radiusMin)
+		self.myQuantities(image, radiusMin, radiusMax)
 		# self.histograms(gradients, radius)
 	
 	def histograms(self, gradients, radius):
@@ -244,57 +244,64 @@ class SecondLevel:
 		
 		return
 	
-	def myQuantities(self, edges, radius):
+	def myQuantities(self, edges, radiusMin, radiusMax):
 			
 		height, width = edges.shape
 		
-		rank = np.zeros((height, width), np.float64)
-		x = []
-		y = []
-		for h in range(radius, height-radius):
-			for w in range(radius, width-radius):
+		rank = np.zeros((height, width, radiusMax - radiusMin, radiusMax / 2), np.int16)
+		
+		x = -width
+		y = height	
+		t1 = []
+		t2 = []	
+		#possible improvements
+		# evaluate only non edge pixels
+		# 
+		for h in range(radiusMax, height - radiusMax):
+			x = -width
+			for w in range(radiusMax, width - radiusMax):
 				
-				neighborhood = np.array(edges[h - radius:h + radius, w - radius:w + radius], dtype=float)
-										
-				pX = -radius
-				pY = radius 
-				
-				for hn in range(0, radius*2):
-					pX = pX + 1
-					for wn in range(0, radius*2):
-						pY = pY - 1;
-						if neighborhood[hn, wn] > 0:
-							#point = matrixToCartesian(hn, wn, neighborhood.shape[0])
-							x.append(pX)
-							y.append(pY)
-			
-					pY = radius			
-									
-				if len(x)>0:
+				for R in range(radiusMin, radiusMax): #possible radius
+					r = R / 2
+					
+					for d in range(0, r): # distance from the interior circle
+						for g in np.linspace(0.0, (3/2)*np.pi, 4): # 7 possible orientation
+							for t in np.linspace(0.0, 2.0 * np.pi, r): # R angle of rolling circle
+							
+								# a = h - int((r) * np.cos(t) + d * np.cos(t))
+								# b = w - int((r) * np.sin(t) - d * np.sin(t))
+								#a = (h - (np.cos(t) * (r + d)))
+								#b = (w - (np.sin(t) * (r - d)))
 								
-					t = np.linspace(0.01, 2 * np.pi, len(x))
-					
-					dx = []
-					dy = []
-					dx = (x - ((radius / 2.0) * np.cos(t))) / np.cos(t);
-					dy = (((radius / 2.0) * np.sin(t)) - y) / np.sin(t);
-					
-					#plt.scatter(x,y)
-					#plt.show()
-													
-					# print np.std(d)
-					rank[h, w] = np.std(dx) + np.std(dy) 
+								a = r*np.cos(g-t) + d*np.cos(t)
+								b = r*np.sin(t-g) - d*np.sin(t)
+								
+								a = int(np.around(a))
+								b = int(np.around(b))
+								
+								#t1.append(a)
+								#t2.append(b)
+								
+								if edges[a, b] == 255:
+									rank[a, b, R-radiusMin, d] = rank[a, b, R-radiusMin, d] + 1
+						
+							#print t1;
+							#print t2;
+							#print ""
+							
+							#plt.scatter(t1,t2)
+							#plt.axis('equal')
+							#plt.show()
+							#t1 = []
+							#t2 = []
+										
+				x = x + 1	
+			y = y + 1	
 				
-				x = []
-				y = []
-				t = []
-				
-				# np.std(d)
-				
-		#rank = np.ma.masked_where(rank > 1.0, rank)
+		# rank = np.ma.masked_where(rank > 1000000, rank)
 		cmap = plt.get_cmap('jet')
-		#cmap.set_bad('white')
-		plt.imshow(rank, cmap=cmap)
+		# cmap.set_bad('white')
+		plt.imshow(rank[:,:,0, 1], cmap=cmap)
 		plt.show()
 	
 	def quantities(self, maxGradients, minGradients, positionsMax, positionsMin, radius):
