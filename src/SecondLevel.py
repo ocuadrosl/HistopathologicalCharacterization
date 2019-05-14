@@ -1,6 +1,8 @@
 import numpy as np
 from Utils import *
 import cv2
+
+import threading
 # from dask.array.routines import gradient
 import matplotlib.pyplot as plt
 from dask.array.routines import gradient
@@ -11,6 +13,8 @@ SIN45 = 0.70710678118  #  in degrees
 
 
 class SecondLevel:
+
+	lock = threading.Lock()
 
 	def setImage(self, image):
 		image = image
@@ -244,65 +248,117 @@ class SecondLevel:
 		
 		return
 	
+	
+	'''
+	@RI  = R index
+	@r = R/2
+	'''
+	def hypotrochoidThread(self, rank, edges, RI, r,  hStart, hEnd, wStart, wEnd):
+		
+		for h in range(hStart, hEnd):
+					
+				for w in range(wStart, wEnd):
+					
+					dI = 0
+					for d in np.linspace(0, r, 8, endpoint=False, dtype = np.int16):  # distance from the interior circle, falta ver el tamanho del paso....
+						
+						gI=0
+						for g in np.linspace(0.0, 2 * np.pi, 4, endpoint=False):  # 4 possible orientations
+									
+							#matchCounter = 0
+							
+							for t in np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False):  # 7 angle of rolling circle, no store it
+								
+								a = h - (r * np.cos(g - t) + d * np.cos(t))
+								b = w - (r * np.sin(t - g) - d * np.sin(t))
+																																					
+								a = int(np.around(a))
+								b = int(np.around(b))
+									
+												
+								if edges[a, b] == 255:
+									#matchCounter = matchCounter + 1
+									self.lock.acquire()
+									rank[a, b, RI,  dI, gI] = rank[a, b, RI,  dI, gI] + 1
+									
+									self.lock.release()
+																					
+							gI=gI+1
+						dI=dI+1	
+			
+	
+	
 	def myQuantities(self, edges, radiusMin, radiusMax):
 			
 		height, width = edges.shape
 		
-		rank = np.zeros((height, width, radiusMax - radiusMin, radiusMax / 2), np.int16)
+		#radius, distance, orientation
+		rank = np.zeros((height, width, radiusMax - radiusMin, 8, 4), np.int16)
 		
-		x = -width
-		y = height	
-		t1 = []
-		t2 = []	
-		#possible improvements
-		# evaluate only non edge pixels
-		# 
-		for h in range(radiusMax, height - radiusMax):
-			x = -width
-			for w in range(radiusMax, width - radiusMax):
+		#rank = np.zeros((height, width), np.float32)
 				
-				for R in range(radiusMin, radiusMax): #possible radius
-					r = R / 2
+		# possible improvements
+		# evaluate only non edge pixels
+				
+		nThreads = 60 # number of threads
+		
+		jumpsHeight = np.linspace(radiusMax, height - radiusMax, nThreads+1, dtype = np.int16)
+		jumpsWidth = np.linspace(radiusMax, width - radiusMax, nThreads+1, dtype = np.int16)
+		print jumpsHeight
+		print jumpsWidth
+		print ""
+		
+				
+		RI=0
+		for R in range(radiusMin, radiusMax):  # possible radius
+			print R
+			
+			r = R / 2
+			threads=[]		
+			
+			#multi threads here
+														
+			for i in range(0, nThreads):
+				#print jumpsWidth[i], jumpsWidth[i+1]
+				thread = threading.Thread(target=self.hypotrochoidThread, args=(rank, edges, RI, r, jumpsHeight[i], jumpsHeight[i+1], jumpsWidth[i], jumpsWidth[i+1]))
+				threads.append(thread)
+				thread.start()
+			
+			for index, t in enumerate(threads):
+				#print index
+				t.join()
 					
-					for d in range(0, r): # distance from the interior circle
-						for g in np.linspace(0.0, (3/2)*np.pi, 4): # 7 possible orientation
-							for t in np.linspace(0.0, 2.0 * np.pi, r): # R angle of rolling circle
-							
-								# a = h - int((r) * np.cos(t) + d * np.cos(t))
-								# b = w - int((r) * np.sin(t) - d * np.sin(t))
-								#a = (h - (np.cos(t) * (r + d)))
-								#b = (w - (np.sin(t) * (r - d)))
-								
-								a = r*np.cos(g-t) + d*np.cos(t)
-								b = r*np.sin(t-g) - d*np.sin(t)
-								
-								a = int(np.around(a))
-								b = int(np.around(b))
-								
-								#t1.append(a)
-								#t2.append(b)
-								
-								if edges[a, b] == 255:
-									rank[a, b, R-radiusMin, d] = rank[a, b, R-radiusMin, d] + 1
 						
-							#print t1;
-							#print t2;
-							#print ""
+			cmap = plt.get_cmap('jet')
+			cmap.set_bad('white')
+			plt.imshow(rank[:, :, RI,  0, 0], cmap=cmap)
+			plt.show()
+			
+			plt.imshow(rank[:, :, RI,  1, 0], cmap=cmap)
+			plt.show()
+			
+			plt.imshow(rank[:, :, RI,  2, 0], cmap=cmap)
+			plt.show()
+			
+			plt.imshow(rank[:, :, RI,  3, 0], cmap=cmap)
+			plt.show()
+			
+			RI=RI+1
+							#if matchCounter >= 4:
+								#rank[h, w] = rank[h, w] + 1
+															
+									
 							
-							#plt.scatter(t1,t2)
-							#plt.axis('equal')
-							#plt.show()
-							#t1 = []
-							#t2 = []
-										
-				x = x + 1	
-			y = y + 1	
+			
+												
 				
 		# rank = np.ma.masked_where(rank > 1000000, rank)
 		cmap = plt.get_cmap('jet')
 		# cmap.set_bad('white')
-		plt.imshow(rank[:,:,0, 1], cmap=cmap)
+		plt.imshow(rank, cmap=cmap)
 		plt.show()
+	
+	
 	
 	def quantities(self, maxGradients, minGradients, positionsMax, positionsMin, radius):
 		height, width = maxGradients[:, :, 0].shape  

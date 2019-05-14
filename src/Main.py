@@ -19,9 +19,8 @@ from PyQt4.QtGui import (QMainWindow, QApplication)
 
 if __name__ == '__main__':
     
-    
-    print np.linspace(0.0, (3/2)*np.pi, 7)
-    fileName = "../input/others/synthetic2.png"
+       
+    fileName = "../input/others/synthetic.tiff"
     image = cv2.imread(fileName)
     imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(imageGray,(3,3),0)
@@ -40,7 +39,7 @@ if __name__ == '__main__':
     
     
     secondLevel = SecondLevel()
-    secondLevel.ERSTransform(edges, 25, 26)
+    secondLevel.ERSTransform(edges, 10, 50)
 
 
 
