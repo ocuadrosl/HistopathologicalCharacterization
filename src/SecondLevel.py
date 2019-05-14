@@ -263,7 +263,7 @@ class SecondLevel:
 					for d in np.linspace(0, r, 8, endpoint=False, dtype = np.int16):  # distance from the interior circle, falta ver el tamanho del paso....
 						
 						gI=0
-						for g in np.linspace(0.0, 2 * np.pi, 4, endpoint=False):  # 4 possible orientations
+						for g in np.linspace(0.0, 2 * np.pi, 8, endpoint=False):  # 4 possible orientations
 									
 							#matchCounter = 0
 							
@@ -293,22 +293,18 @@ class SecondLevel:
 		height, width = edges.shape
 		
 		#radius, distance, orientation
-		rank = np.zeros((height, width, radiusMax - radiusMin, 8, 4), np.int16)
+		rank = np.zeros((height, width, radiusMax - radiusMin, 8, 8), np.int16)
 		
 		#rank = np.zeros((height, width), np.float32)
 				
 		# possible improvements
 		# evaluate only non edge pixels
 				
-		nThreads = 60 # number of threads
+		nThreads = 100 # number of threads
 		
 		jumpsHeight = np.linspace(radiusMax, height - radiusMax, nThreads+1, dtype = np.int16)
 		jumpsWidth = np.linspace(radiusMax, width - radiusMax, nThreads+1, dtype = np.int16)
-		print jumpsHeight
-		print jumpsWidth
-		print ""
-		
-				
+						
 		RI=0
 		for R in range(radiusMin, radiusMax):  # possible radius
 			print R
@@ -331,17 +327,17 @@ class SecondLevel:
 						
 			cmap = plt.get_cmap('jet')
 			cmap.set_bad('white')
-			plt.imshow(rank[:, :, RI,  0, 0], cmap=cmap)
-			plt.show()
+			#plt.imshow(rank[:, :, RI,  0, 0], cmap=cmap)
+			#plt.show()
 			
-			plt.imshow(rank[:, :, RI,  1, 0], cmap=cmap)
-			plt.show()
+			#plt.imshow(rank[:, :, RI,  1, 0], cmap=cmap)
+			#plt.show()
 			
-			plt.imshow(rank[:, :, RI,  2, 0], cmap=cmap)
-			plt.show()
+			#plt.imshow(rank[:, :, RI,  2, 0], cmap=cmap)
+			#plt.show()
 			
-			plt.imshow(rank[:, :, RI,  3, 0], cmap=cmap)
-			plt.show()
+			#plt.imshow(rank[:, :, RI,  3, 0], cmap=cmap)
+			#plt.show()
 			
 			RI=RI+1
 							#if matchCounter >= 4:
@@ -355,7 +351,7 @@ class SecondLevel:
 		# rank = np.ma.masked_where(rank > 1000000, rank)
 		cmap = plt.get_cmap('jet')
 		# cmap.set_bad('white')
-		plt.imshow(rank, cmap=cmap)
+		plt.imshow(rank[:, :, 0,  3, 4], cmap=cmap)
 		plt.show()
 	
 	
