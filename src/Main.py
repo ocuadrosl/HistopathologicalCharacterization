@@ -40,7 +40,8 @@ if __name__ == '__main__':
     
     
     secondLevel = SecondLevel()
-    secondLevel.ERSTransform(edges, 20, 21)
+    #secondLevel.ERSTransform(edges, 20, 21)
+    secondLevel.createEllipseMask(50)
 
 
 

@@ -271,7 +271,7 @@ class SecondLevel:
 					for d in np.linspace(0, r, 8, endpoint=False, dtype=np.int16):  # distance from the interior circle, falta ver el tamanho del paso....
 												
 						gI = 0
-						for g in np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False):  # 4 possible orientations
+						for g in np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False):  # 8 possible orientations
 							
 							# matchCounter = 0
 							for t in np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False):  # 7 angle of rolling circle, no store it
@@ -292,12 +292,12 @@ class SecondLevel:
 								b = int(np.around(x)) + w
 								
 								#print (a,b)
-																			
+								rank2[a, b] += 1;											
 								if edges[a, b] == 255:
 									# matchCounter = matchCounter + 1
 									self.lock.acquire()
 									rank[a, b, RI, dI, gI] = rank[a, b, RI, dI, gI] + 1
-									rank2[a, b] += 1;
+									#rank2[a, b] += 1;
 									
 									self.lock.release()
 																					
@@ -352,25 +352,9 @@ class SecondLevel:
 			for i in range(0, nThreads):
 				# print index
 				threads[i].join()
-				
 						
-			#cmap = plt.get_cmap('jet')
-			#cmap.set_bad('white')
-			# plt.imshow(rank[:, :, RI,  0, 0], cmap=cmap)
-			# plt.show()
-			
-			# plt.imshow(rank[:, :, RI,  1, 0], cmap=cmap)
-			# plt.show()
-			
-			# plt.imshow(rank[:, :, RI,  2, 0], cmap=cmap)
-			# plt.show()
-			
-			# plt.imshow(rank[:, :, RI,  3, 0], cmap=cmap)
-			# plt.show()
-			
 			RI = RI + 1
-							# if matchCounter >= 4:
-								# rank[h, w] = rank[h, w] + 1
+							
 				
 			# rank = np.ma.masked_where(rank > 1000000, rank)
 		cmap = plt.get_cmap('jet')
@@ -380,7 +364,48 @@ class SecondLevel:
 	
 	
 	
+	def createEllipseMask(self, radius, nDistances=8, nOrientations=4):
+		
+		mask = np.zeros((radius*2, radius*2), np.int16)
+				
+		r = radius//2
+				
+		for d in np.linspace(1, r, nDistances, endpoint=False, dtype=np.int16):  # distance from the interior circle, falta ver el tamanho del paso....
+			
+			for g in np.linspace(0.0, 2.0 * np.pi, nOrientations, endpoint=False):  # 4 possible orientations
+							
+				for t in np.linspace(0.0, 2.0 * np.pi, 2*r*np.pi, endpoint=False):  # 7 angle of rolling circle, no store it
+					
+					x = (r * np.cos(g - t) + d * np.cos(t)) 
+					y = (r * np.sin(t - g) - d * np.sin(t))
+					
+					h = int(y)+radius
+					w = int(x)+radius
+										
+					try:
+						mask[h, w] = d
+					except:
+						print(h,w)
+					
+		
+		
+		cmap = plt.get_cmap('jet')
+		# cmap.set_bad('white')
+		plt.imshow(mask, cmap=cmap)
+		plt.show()
+		
+		return mask			
+		
+					
+		
+		
 	
+	
+	
+	
+	'''
+	deprecated
+	'''
 	def quantities(self, maxGradients, minGradients, positionsMax, positionsMin, radius):
 		height, width = maxGradients[:, :, 0].shape  
 		# S quantity, see paper
