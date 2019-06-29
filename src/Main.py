@@ -1,28 +1,33 @@
 import os
-import javabridge
-import bioformats
-from bioformats import log4j
+#import javabridge
+#import bioformats
+#from bioformats import log4j
 import sys
 import pylab
 import numpy as np
-from bioformats.omexml import OMEXML
-from Utils import *
-from FirstLevel import FirstLevel
-from SecondLevel import SecondLevel
-from LBPFeatures import *
+#from bioformats.omexml import OMEXML
+
+
+#from FirstLevel import FirstLevel
+#from SecondLevel import SecondLevel
+from GraphApproach import GraphApproach  
+#from LBPFeatures import *
 import matplotlib.pyplot as plt
-from gui.MainGui import *
-from gui.ActionsGui import *
+#from gui.MainGui import *
+#from gui.ActionsGui import *
 import cv2
-from ImageProcessing import *
-from PyQt4.QtGui import (QMainWindow, QApplication)
+#from ImageProcessing import *
+#from PyQt4.QtGui import (QMainWindow, QApplication)
+
+
 
 if __name__ == '__main__':
     
        
     fileName = "../input/others/small.png"
-    image = cv2.imread(fileName)
-    imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    rgbImage = cv2.imread(fileName)
+    
+    '''imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(imageGray,(3,3), 0)
     #blur = cv2.medianBlur(imageGray, 3)
   
@@ -35,13 +40,21 @@ if __name__ == '__main__':
     
     edges = cv2.Canny(blur,0,255)
     
-    #plt.imshow(edges, cmap='hot')
-    #plt.show()
+    plt.imshow(edges, cmap='hot')
+    plt.show()
+    
+    '''
+    graphApproach = GraphApproach()
+    graphApproach.process(rgbImage)
     
     
-    secondLevel = SecondLevel()
+    #secondLevel = SecondLevel()
     #secondLevel.ERSTransform(edges, 20, 21)
-    secondLevel.createEllipseMask(50)
+    #secondLevel.createEllipseMask(50)
+
+
+
+    
 
 
 

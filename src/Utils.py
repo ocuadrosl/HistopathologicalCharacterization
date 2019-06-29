@@ -30,11 +30,14 @@ def minMax(inputValue, orgMin, orgMax, newMin, newMax):
     return  (((newMax - newMin) * (inputValue - orgMin)) / den) + newMin
 
 
-def cartesianToPolar(x, y):
+def cartesianToPolar(x, y, cx=0, cy=0):
+    
+    x -= cx
+    y -= cy
     
     r = np.sqrt(x ** 2 + y ** 2)
     t = np.arctan2(y, x)
-    return (r, t)
+    return [r, t]
 
 
 def matrixToCartesian(col, row, size):
@@ -42,11 +45,8 @@ def matrixToCartesian(col, row, size):
     fraction = ((size / 2) + 1 / 2)
     return (col - fraction, -row + fraction)
 
-#def cartesianToMatrix(x,y,size):
+
+def vectorToMatrixIndex(index, height):
     
-    
-    
-    
-    
-    
+    return (index // height, index % height) 
      

@@ -9,7 +9,7 @@ import matplotlib as mpl
 import matplotlib.image as mpimg
 from PIL.ImageOps import grayscale
 from PIL import Image
-from compiler.ast import Printnl
+#from compiler.ast import Printnl
 from time import ctime
 import os
 import javabridge
@@ -70,8 +70,8 @@ class FirstLevel:
             physicalX = ome.image().Pixels.get_PhysicalSizeX()
             physicalY = ome.image().Pixels.get_PhysicalSizeY()
             
-            print 'Original size: ', sizeX, sizeY
-            print 'Original physical pixel size: ', physicalX, physicalY
+            print('Original size: ', sizeX, sizeY)
+            print('Original physical pixel size: ', physicalX, physicalY)
                        
             inputMagnification = np.round(np.float(ome.instrument(0).Objective.get_NominalMagnification()), 0)
                       
@@ -128,18 +128,18 @@ class FirstLevel:
                 
                 hMosaicGray = []
                 progress = (tileCounter*100)/(numberOfTilesX*numberOfTilesY)
-                print "processing", str(progress)+' %'
+                print("processing", str(progress)+' %')
                 progressBar.setValue(progress)
             
             vMosaicDensity = self.identifyHighDensityTile(copy.deepcopy(vMosaicGray), radius)
-            print "High density computation [ok]"
+            print("High density computation [ok]")
             high, low = self.connectedComponetsTile(vMosaicDensity, vMosaicGray, threshold)
-            print "Connected components [ok]"                
+            print("Connected components [ok]")                
         finally:
             javabridge.kill_vm()
     
         #self.writeDensityImage(vMosaicGray, fileName)
-        print "succes"
+        print("success")
         return (high, low, vMosaicDensity, vMosaicGray)
     
     
@@ -149,7 +149,7 @@ class FirstLevel:
     def  identifyHighDensityTile(self, tileGray, radius=5):
         
         foreground = self.segmentBackground(tileGray, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        # print "High density tile OK"   
+        # print("High density tile OK")   
         return self.identifyHighDensity(foreground, radius)
     
     def connectedComponetsTile(self, densityImage, grayImage, threshold):
@@ -175,7 +175,7 @@ class FirstLevel:
             mask[np.where(mask == [255])] = grayImage[np.where(mask == [255])]
             
             # roiMasks.append(mask);
-        print "Connected components tiles [OK]" 
+        print("Connected components tiles [OK]") 
         return (roi, nonRoi)
     
     '''
@@ -225,7 +225,7 @@ class FirstLevel:
             self.roiMasks.append(mask);
     
         return density
-        print "Connected components OK"    
+        print("Connected components OK")    
     
     '''
     Ad hoc bachground segmentation  

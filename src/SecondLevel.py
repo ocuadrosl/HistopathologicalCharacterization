@@ -254,58 +254,40 @@ class SecondLevel:
 	@r = R/2
 	'''
 
-	def hypotrochoidThread(self, rank, rank2, edges, RI, r, hBegin, hEnd, wBegin, wEnd):
+	def hypotrochoidThread(self,edges, rank, mask, hBegin, hEnd, wBegin, wEnd):
 	
 		
 		#print hBegin, hEnd, wBegin, wEnd
 		#print str(hBegin)+"- "+ str(hEnd)+"- "+ str(wBegin)+"- "+ str(wEnd)+"-" 
+		heightMask, widthMask, ellipses = mask.shape
+		#print mask.shape
 		
-					
+		
+		rankTmp = 0			
 		for h in range(hBegin, hEnd):
 				
-				#rank2[h, w] = 1;
-				for w in range(wBegin, wEnd):
-					
-															
-					dI = 0
-					for d in np.linspace(0, r, 8, endpoint=False, dtype=np.int16):  # distance from the interior circle, falta ver el tamanho del paso....
-												
-						gI = 0
-						for g in np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False):  # 8 possible orientations
+			#rank2[h, w] = 1;
+			for w in range(wBegin, wEnd):
+				
+				
+				for e in range(0, ellipses):									
+					rankTmp = 0
+					for hM in range(0, heightMask):
 							
-							# matchCounter = 0
-							for t in np.linspace(0.0, 2.0 * np.pi, 8, endpoint=False):  # 7 angle of rolling circle, no store it
-								
-								#a = h - (r * np.cos(g - t) + d * np.cos(t))
-								#b = w - (r * np.sin(t - g) - d * np.sin(t))
-								#rank2[h, w] = 1;
-																
-								x = (r * np.cos(g - t) + d * np.cos(t)) 
-								y = (r * np.sin(t - g) - d * np.sin(t))
-								
-								#print (x,y)
-																							
-								#b = minMax(x, width//2*-1 , width//2, 0, width-1)
-								#a = minMax(y, height//2*-1 , height//2, 0, height-1)
-															
-								a = int(np.around(y)) + h
-								b = int(np.around(x)) + w
-								
-								#print (a,b)
-								rank2[a, b] += 1;											
-								if edges[a, b] == 255:
-									# matchCounter = matchCounter + 1
-									self.lock.acquire()
-									rank[a, b, RI, dI, gI] = rank[a, b, RI, dI, gI] + 1
-									#rank2[a, b] += 1;
-									
-									self.lock.release()
+						for wM in range(0, widthMask):	
 																					
-							gI = gI + 1
-						dI = dI + 1
+							if edges[h-(heightMask/2), w-(widthMask/2)]==1 and  mask[hM, wM, e]==1:
+								rankTmp += 1
+							
+												
+					if rank[h, w] < rankTmp:
+						#self.lock.acquire()
+						rank[h,w] = rankTmp
+						#self.lock.release()
+				
+				
 						
-		
-		
+	
 		print ('end')		
 	
 	def myQuantities(self, edges, radiusMin, radiusMax):
@@ -313,15 +295,15 @@ class SecondLevel:
 		height, width = edges.shape
 		
 		# radius, distance, orientation
-		rank = np.zeros((height, width, radiusMax - radiusMin, 8, 8), np.int16)
-		rank2 = np.zeros((height, width), np.int16)
+		#rank = np.zeros((height, width, radiusMax - radiusMin, 8, 8), np.int16)
+		rank = np.zeros((height, width), np.int16)
 		
 		# rank = np.zeros((height, width), np.float32)
 				
 		# possible improvements
 		# evaluate only non edge pixels
 				
-		nThreads = 64  # number of threads
+		nThreads = 30  # number of threads
 		
 		jumpsHeight = np.linspace(radiusMax, height - radiusMax, np.sqrt(nThreads)+1, dtype=np.int16)
 		jumpsWidth = np.linspace(radiusMax, width - radiusMax, np.sqrt(nThreads)+1, dtype=np.int16)
@@ -333,8 +315,9 @@ class SecondLevel:
 		for R in range(radiusMin, radiusMax):  # possible radius
 			print "radius", R
 			
-			r = R / 2
-			threads = []		
+			#r = R / 2
+			threads = []
+			mask = self.createEllipseMask(R) 		
 			
 			# multi threads here
 													
@@ -344,7 +327,7 @@ class SecondLevel:
 					
 					#print jumpsHeight[h], jumpsWidth[w], jumpsHeight[h+1], jumpsWidth[w+1]
 															
-					thread = threading.Thread(target=self.hypotrochoidThread, args=(rank, rank2, edges, RI, r, jumpsHeight[h], jumpsHeight[h+1], jumpsWidth[w], jumpsWidth[w+1],))
+					thread = threading.Thread(target=self.hypotrochoidThread, args=(edges, rank, mask, jumpsHeight[h], jumpsHeight[h+1], jumpsWidth[w], jumpsWidth[w+1],))
 					threads.append(thread)
 					# print "thread start", i
 					thread.start()
@@ -359,17 +342,23 @@ class SecondLevel:
 			# rank = np.ma.masked_where(rank > 1000000, rank)
 		cmap = plt.get_cmap('jet')
 		# cmap.set_bad('white')
-		plt.imshow(rank2, cmap=cmap)
+		plt.imshow(rank, cmap=cmap)
 		plt.show()
 	
 	
 	
 	def createEllipseMask(self, radius, nDistances=8, nOrientations=4):
 		
-		mask = np.zeros((radius*2, radius*2), np.int16)
-				
+	
 		r = radius//2
+		
+		
+		nEllipses = nDistances* nOrientations
 				
+		mask = np.zeros((radius*2, radius*2, nEllipses ), np.int16)
+		#mask = np.zeros((radius*2, radius*2), np.int16)
+		
+		ellipseIndex = 0 				
 		for d in np.linspace(1, r, nDistances, endpoint=False, dtype=np.int16):  # distance from the interior circle, falta ver el tamanho del paso....
 			
 			for g in np.linspace(0.0, 2.0 * np.pi, nOrientations, endpoint=False):  # 4 possible orientations
@@ -381,17 +370,20 @@ class SecondLevel:
 					
 					h = int(y)+radius
 					w = int(x)+radius
-										
+															
 					try:
-						mask[h, w] = d
+						mask[h, w, ellipseIndex] = 1
+						#mask[h, w] = ellipseIndex
 					except:
 						print(h,w)
 					
-		
+					
+				ellipseIndex += 1	
 		
 		cmap = plt.get_cmap('jet')
 		# cmap.set_bad('white')
-		plt.imshow(mask, cmap=cmap)
+		plt.imshow(mask[:,:,15], cmap=cmap)
+		#plt.imshow(mask, cmap=cmap)
 		plt.show()
 		
 		return mask			
