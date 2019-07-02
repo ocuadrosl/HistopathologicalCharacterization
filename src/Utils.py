@@ -49,4 +49,19 @@ def matrixToCartesian(col, row, size):
 def vectorToMatrixIndex(index, height):
     
     return (index // height, index % height) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
      

@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import igraph
 from igraph import *
 from Utils import *
+from matplotlib.font_manager import weight_dict
+from igraph.drawing import edge
+from dis import dis
 
 
 class GraphApproach:
@@ -19,58 +22,68 @@ class GraphApproach:
         binary = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         blur[np.where(binary == 255)] = 255  # aply threshold to blur
         edges = cv2.Canny(blur, 0, 255)
+        
+        edges = np.matrix(edges, np.int32)
     
         # plt.imshow(edges, cmap='hot')
         # plt.show()
         
         return edges
     
-    def createGraph(self, edges, maskSize=30):
+    def createGraph(self, edges, minRadius=5, maxRadius=10):
         
         height, width = edges.shape
         
-        maskSizeCenter = maskSize // 2
+        vertexLabel = 0
+        for h in range(0, height):
+            for w in range(0, width):
+                if edges[h, w] == 255:
+                    edges[h, w] = vertexLabel
+                    vertexLabel += 1
+                else:
+                    edges[h, w] = -1
+        
+        # plt.imshow(edges, cmap='hot')
+        # plt.show() 
+        # print(VertexLabel)               
+                
+        
         
         graphEdges = []
         graphWeights = []
-        vertexIds = []
+        verticesId = []
+                      
+        adjMatrix = np.zeros((vertexLabel, vertexLabel), np.float32)  
+               
+        # all pixels non-edge pixels 
+        for h in range(0 + maxRadius, height - maxRadius):
+            for w in range(0 + maxRadius, width - maxRadius):
+                
+                if edges[h, w] >= 0:  # is edge
+                    vLabelOrg = edges[h, w]
+                    verticesId.append((h, w))
+                    for hM in range(h - maxRadius, h + maxRadius):
+                        for wM in range(w - maxRadius, w + maxRadius):
+                            if edges[hM, wM] >= 0 and (h, w) != (hM, wM):  # is edge and is not the same pixel
+                                                                         
+                                graphEdges.append((vLabelOrg, edges[hM, wM]))                                       
+                                
+                                weight = self.laplaceWeight((h,w), (hM,wM), 5, minRadius, maxRadius)
+                                graphWeights.append(weight)
+                                
+                                #adjMatrix[vLabelOrg, edges[hM, wM]] = weight
         
-        # edges
+                                
         
-        for h in range(0, height):
-            cH = h + maskSizeCenter  # mask corner
-            for w in range(0, width):
-                
-                vertexId = (h * width) + w
-                vertexIds.append((h, w))
-                
-                if edges[h, w] == 255:  # is edge?
-                    
-                    # print(vertexId, h,w)
-                    # mask
-                    cW = w + maskSizeCenter  # mask corner
-                    d1 = cartesianToPolar(h, w, cH, cW)[0]
-                    
-                    for hM in range(h - maskSizeCenter, h + maskSizeCenter):
-                        for wM in range(w - maskSizeCenter, w + maskSizeCenter):
-                            
-                            try:
-                                if edges[hM, wM] == 255 and (hM, wM) != (h, w):  # is edge
-                                    
-                                    graphEdges.append((vertexId, (hM * width) + wM))
-                                                                        
-                                    d2 = cartesianToPolar(hM, wM, cH, cW)[0]
-                                   
-                                    weight = self.laplaceWeight(d1, d2, 5) 
-                                    #print(weight)
-                                    graphWeights.append(weight)
-                                                              
-                            except:
-                                pass        
-                
+        
+        
+        
+        #plt.imshow(adjMatrix, cmap='hot')
+        #plt.show()
+        
         graph = Graph(edges=graphEdges)
         
-        graph.vs["ids"] = vertexIds
+        graph.vs["ids"] = verticesId
         graph.es["weights"] = graphWeights
                      
         graph.simplify(multiple=True, loops=True, combine_edges="max")
@@ -86,7 +99,6 @@ class GraphApproach:
         # membership = graph.community_label_propagation(weights=graph.es["weights"])   
                 
         self.membershipToImage(graph, membership, height, width)
-        
                             
     def membershipToImage(self, graph, membership, height, width):
         
@@ -99,9 +111,15 @@ class GraphApproach:
         plt.imshow(clusters, cmap='jet')
         plt.show()
     
-    def laplaceWeight(self, vector1, vector2, b):
+    def laplaceWeight(self, vector1, vector2, b, minRadius, maxRadius):
         
-        return (1 / (2 * b)) * np.exp(-1 * (np.abs(vector1 - vector2) / b))
+                  
+        dist = np.linalg.norm(np.array(vector1)-np.array(vector2))
+        
+        
+        return 1 if minRadius<= dist <= maxRadius else 0
+              
+        #return (1 / (2 * b)) * np.exp(-1 * (dist / b))
     
     def cosine(self, vector1, vector2):
         norm1 = np.linalg.norm(vector1)

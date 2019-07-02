@@ -3,7 +3,6 @@ import os
 #import bioformats
 #from bioformats import log4j
 import sys
-import pylab
 import numpy as np
 #from bioformats.omexml import OMEXML
 
@@ -50,7 +49,7 @@ if __name__ == '__main__':
     
     #secondLevel = SecondLevel()
     #secondLevel.ERSTransform(edges, 20, 21)
-    #secondLevel.createEllipseMask(50)
+    #secondLevel.createEllipseMask(10)
 
 
 
