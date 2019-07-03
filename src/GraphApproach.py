@@ -7,6 +7,7 @@ from Utils import *
 from matplotlib.font_manager import weight_dict
 from igraph.drawing import edge
 from dis import dis
+from scipy.spatial import distance
 
 
 class GraphApproach:
@@ -45,58 +46,51 @@ class GraphApproach:
         
         # plt.imshow(edges, cmap='hot')
         # plt.show() 
-        # print(VertexLabel)               
-                
+        # print(VertexLabel)  
         
+        verticesNo = vertexLabel             
         
-        graphEdges = []
-        graphWeights = []
-        verticesId = []
-                      
-        adjMatrix = np.zeros((vertexLabel, vertexLabel), np.float32)  
+        vsIndex = [None] * verticesNo  # to store the correesponding image index
+        tupleList = [] # store edges and weights
                
         # all pixels non-edge pixels 
-        for h in range(0 + maxRadius, height - maxRadius):
-            for w in range(0 + maxRadius, width - maxRadius):
+        for h in range(0, height):
+            for w in range(0 , width):
                 
                 if edges[h, w] >= 0:  # is edge
+                    
                     vLabelOrg = edges[h, w]
-                    verticesId.append((h, w))
+                    vsIndex[vLabelOrg] = (h, w)
+                    
                     for hM in range(h - maxRadius, h + maxRadius):
                         for wM in range(w - maxRadius, w + maxRadius):
-                            if edges[hM, wM] >= 0 and (h, w) != (hM, wM):  # is edge and is not the same pixel
-                                                                         
-                                graphEdges.append((vLabelOrg, edges[hM, wM]))                                       
-                                
-                                weight = self.laplaceWeight((h,w), (hM,wM), 5, minRadius, maxRadius)
-                                graphWeights.append(weight)
-                                
-                                #adjMatrix[vLabelOrg, edges[hM, wM]] = weight
+                            vLabelDest = edges[hM, wM] 
+                            try:  # avoid to access out of dimentions 
+                                if vLabelDest >= 0 and vLabelOrg != vLabelDest:  # is edge and is not the same pixel
+                                                         
+                                    weight = self.laplaceWeight((h, w), (hM, wM), 1, minRadius, maxRadius)
+                                    
+                                    tupleList.append((vLabelOrg, vLabelDest, weight))                                    
+                                    
+                            except:
+                                pass        
+            
         
-                                
-        
-        
-        
-        
-        #plt.imshow(adjMatrix, cmap='hot')
-        #plt.show()
-        
-        graph = Graph(edges=graphEdges)
-        
-        graph.vs["ids"] = verticesId
-        graph.es["weights"] = graphWeights
-                     
+        graph = Graph.TupleList(edges=tupleList, directed=False, weights=True)
+               
+        graph.vs['imageIndex'] = vsIndex
+                             
         graph.simplify(multiple=True, loops=True, combine_edges="max")
         graph.vs.select(_degree=0).delete()
-        print('Creating graph [OK]')
-                              
-        # igraph.plot(graph, vertex_size=3, layout = graph.layout('kk'))
         
-        membership = graph.community_fastgreedy(weights=graph.es["weights"]).as_clustering().membership
-        print('Clutering [OK]')
+        print('Creating graph [OK]')
                 
-        # membership = graph.community_multilevel(weights=graph.es["weights"]).membership 
+        #membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
+                       
+        membership = graph.community_multilevel(weights=graph.es["weight"]).membership 
         # membership = graph.community_label_propagation(weights=graph.es["weights"])   
+        
+        print('Clutering [OK]')
                 
         self.membershipToImage(graph, membership, height, width)
                             
@@ -105,21 +99,20 @@ class GraphApproach:
         clusters = np.zeros((height, width), np.int32)  
         
         for i in range(0, len(membership)):
-            h, w = graph.vs['ids'][i]
+            h, w = graph.vs['imageIndex'][i]
             clusters[h, w] = membership[i]
         
         plt.imshow(clusters, cmap='jet')
         plt.show()
     
     def laplaceWeight(self, vector1, vector2, b, minRadius, maxRadius):
-        
                   
-        dist = np.linalg.norm(np.array(vector1)-np.array(vector2))
-        
-        
-        return 1 if minRadius<= dist <= maxRadius else 0
+        # dist = np.linalg.norm(np.array(vector1)-np.array(vector2))
+        dist = distance.euclidean(vector1, vector2)
+               
+        # return 1 if minRadius<= dist <= maxRadius else 0
               
-        #return (1 / (2 * b)) * np.exp(-1 * (dist / b))
+        return (1 / (2 * b)) * np.exp(-1 * (dist / b))
     
     def cosine(self, vector1, vector2):
         norm1 = np.linalg.norm(vector1)
