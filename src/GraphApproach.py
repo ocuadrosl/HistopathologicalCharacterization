@@ -8,6 +8,7 @@ from matplotlib.font_manager import weight_dict
 from igraph.drawing import edge
 from dis import dis
 from scipy.spatial import distance
+from numpy.lib.function_base import angle
 
 
 class GraphApproach:
@@ -51,30 +52,36 @@ class GraphApproach:
         verticesNo = vertexLabel             
         
         vsIndex = [None] * verticesNo  # to store the correesponding image index
-        tupleList = [] # store edges and weights
+        tupleList = []  # store edges and weights
                
-        # all pixels non-edge pixels 
+        # all pixels 
         for h in range(0, height):
             for w in range(0 , width):
-                
-                if edges[h, w] >= 0:  # is edge
-                    
-                    vLabelOrg = edges[h, w]
-                    vsIndex[vLabelOrg] = (h, w)
-                    
+                                
+                if edges[h, w] == -1:  # is not an edge
+                                                          
+                    vLabelOrg = None
                     for hM in range(h - maxRadius, h + maxRadius):
                         for wM in range(w - maxRadius, w + maxRadius):
-                            vLabelDest = edges[hM, wM] 
+                                                   
                             try:  # avoid to access out of dimentions 
-                                if vLabelDest >= 0 and vLabelOrg != vLabelDest:  # is edge and is not the same pixel
-                                                         
-                                    weight = self.laplaceWeight((h, w), (hM, wM), 1, minRadius, maxRadius)
+                                if edges[hM, wM] >= 0:  # is an edge
+                                    vsIndex[edges[hM, wM]] = (hM, wM)
+                                     
+                                    if vLabelOrg is None:
+                                        vLabelOrg = edges[hM, wM]
+                                        hOrg, wOrg = hM, wM
+                                        continue   
+                                    
+                                    vLabelDest = edges[hM, wM];
+                                                                                             
+                                    weight = self.laplaceWeight((hOrg, wOrg), (hM, wM), (h, w), 1, minRadius, maxRadius)
+                                    # print(weight)
                                     
                                     tupleList.append((vLabelOrg, vLabelDest, weight))                                    
                                     
                             except:
                                 pass        
-            
         
         graph = Graph.TupleList(edges=tupleList, directed=False, weights=True)
                
@@ -83,9 +90,10 @@ class GraphApproach:
         graph.simplify(multiple=True, loops=True, combine_edges="max")
         graph.vs.select(_degree=0).delete()
         
+        
         print('Creating graph [OK]')
                 
-        #membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
+        # membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
                        
         membership = graph.community_multilevel(weights=graph.es["weight"]).membership 
         # membership = graph.community_label_propagation(weights=graph.es["weights"])   
@@ -105,14 +113,23 @@ class GraphApproach:
         plt.imshow(clusters, cmap='jet')
         plt.show()
     
-    def laplaceWeight(self, vector1, vector2, b, minRadius, maxRadius):
+    def laplaceWeight(self, p1, p2, pC, b, minRadius, maxRadius):
                   
-        # dist = np.linalg.norm(np.array(vector1)-np.array(vector2))
-        dist = distance.euclidean(vector1, vector2)
+        # rad2deg(atan2(y2-yc, x2-xc)-atan2(y1-yc, x1-xc))
+        
+        distToCent1 = distance.euclidean(p1, pC)
+        distToCent2 = distance.euclidean(p2, pC)
+        
+        if distToCent1 + distToCent2 <= minRadius or distToCent2 + distToCent1 >= maxRadius:
+            return 0
+        
+        distDiff = np.abs(distToCent1 - distToCent2)
+        
+        angle = np.degrees(np.arctan2(p2[1] - pC[1], p2[0] - pC[0]) - np.arctan2(p1[1] - pC[1], p1[0] - pC[0]))                
                
-        # return 1 if minRadius<= dist <= maxRadius else 0
-              
-        return (1 / (2 * b)) * np.exp(-1 * (dist / b))
+        relation = distDiff / angle if angle > 0 else distDiff / 0.0001
+                      
+        return (1 / (2 * b)) * np.exp(-1 * (relation / b))
     
     def cosine(self, vector1, vector2):
         norm1 = np.linalg.norm(vector1)
