@@ -27,3 +27,4 @@ venv.bak/
 .idea
 .idea/
 /.idea/
+*.pdf
