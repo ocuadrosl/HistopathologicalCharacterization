@@ -19,20 +19,40 @@ class GraphApproach:
 
     def getEdges(self, image):
         imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+              
         blur = cv2.GaussianBlur(imageGray, (3, 3), 0)
-        
+              
         binary = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        
+        #gx, gy  = np.gradient(blur)
+        
+        gx = cv2.Sobel(blur,cv2.CV_64F,1,0) 
+        gy = cv2.Sobel(blur,cv2.CV_64F,0,1)
+        
+        
+        angle = np.arctan2(gy, gx) * (180 / np.pi)
+        
+        h,w = imageGray.shape
+        x, y = np.mgrid[0:h, 0:w]
+        #plt.quiver(x, y, gx, gy, units='x', pivot='tip', width=0.09,   scale=1 / 0.01)
+          
+        plt.imshow(angle, cmap='hot')
+        plt.show()
+        
         blur[np.where(binary == 255)] = 255  # aply threshold to blur
+        
         edges = cv2.Canny(blur, 0, 255)
         
         edges = np.matrix(edges, np.int32)
+    
+        
     
         # plt.imshow(edges, cmap='hot')
         # plt.show()
         
         return edges
     
-    def createGraph(self, edges, minRadius=5, maxRadius=10):
+    def createGraph(self, edges, minRadius=1, maxRadius=10):
         
         height, width = edges.shape
         
@@ -74,8 +94,10 @@ class GraphApproach:
                                         continue   
                                     
                                     vLabelDest = edges[hM, wM];
+                                    
+                                    #print(vLabelOrg, vLabelDest)
                                                                                              
-                                    weight = self.laplaceWeight((hOrg, wOrg), (hM, wM), (h, w), 1, minRadius, maxRadius)
+                                    weight = self.laplaceWeight((hOrg, wOrg), (hM, wM), (h, w), 0.001, minRadius, maxRadius)
                                     # print(weight)
                                     
                                     tupleList.append((vLabelOrg, vLabelDest, weight))                                    
@@ -92,9 +114,9 @@ class GraphApproach:
         
         print('Creating graph [OK]')
                 
-        # membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
+        membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
                        
-        membership = graph.community_multilevel(weights=graph.es["weight"]).membership 
+        #membership = graph.community_multilevel(weights=graph.es["weight"]).membership 
         # membership = graph.community_label_propagation(weights=graph.es["weights"])   
         
         print('Clutering [OK]')
@@ -115,13 +137,15 @@ class GraphApproach:
     def laplaceWeight(self, p1, p2, pC, b, minRadius, maxRadius):
                   
                 
-        dist1ToCent = distance.sqeuclidean(p1, pC)
-        dist2ToCent = distance.sqeuclidean(p2, pC)
-        dist1to2 = distance.sqeuclidean(p1, p2)
+        dist1ToCent = distance.euclidean(p1, pC)
+        dist2ToCent = distance.euclidean(p2, pC)
+        dist1to2 = distance.euclidean(p1, p2)
         
         diffToCent = np.abs(dist1ToCent - dist2ToCent) 
         
-        relation = diffToCent/dist1to2   if dist1to2 > 0 else diffToCent / 0.001
+        relation = diffToCent/dist1to2  if dist1to2 > 0 else diffToCent / 0.001
+        
+        #relation  = np.abs(dist1to2-diffToCent) 
         
         # angle = np.degrees(np.arctan2(p2[1] - pC[1], p2[0] - pC[0]) - np.arctan2(p1[1] - pC[1], p1[0] - pC[0]))                
                
