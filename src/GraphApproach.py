@@ -90,7 +90,6 @@ class GraphApproach:
         graph.simplify(multiple=True, loops=True, combine_edges="max")
         graph.vs.select(_degree=0).delete()
         
-        
         print('Creating graph [OK]')
                 
         # membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
@@ -115,19 +114,18 @@ class GraphApproach:
     
     def laplaceWeight(self, p1, p2, pC, b, minRadius, maxRadius):
                   
-        # rad2deg(atan2(y2-yc, x2-xc)-atan2(y1-yc, x1-xc))
+                
+        dist1ToCent = distance.sqeuclidean(p1, pC)
+        dist2ToCent = distance.sqeuclidean(p2, pC)
+        dist1to2 = distance.sqeuclidean(p1, p2)
         
-        distToCent1 = distance.euclidean(p1, pC)
-        distToCent2 = distance.euclidean(p2, pC)
+        diffToCent = np.abs(dist1ToCent - dist2ToCent) 
         
-        if distToCent1 + distToCent2 <= minRadius or distToCent2 + distToCent1 >= maxRadius:
-            return 0
+        relation = diffToCent/dist1to2   if dist1to2 > 0 else diffToCent / 0.001
         
-        distDiff = np.abs(distToCent1 - distToCent2)
-        
-        angle = np.degrees(np.arctan2(p2[1] - pC[1], p2[0] - pC[0]) - np.arctan2(p1[1] - pC[1], p1[0] - pC[0]))                
+        # angle = np.degrees(np.arctan2(p2[1] - pC[1], p2[0] - pC[0]) - np.arctan2(p1[1] - pC[1], p1[0] - pC[0]))                
                
-        relation = distDiff / angle if angle > 0 else distDiff / 0.0001
+        # relation = distDiff / angle if angle > 0 else distDiff / 0.0001
                       
         return (1 / (2 * b)) * np.exp(-1 * (relation / b))
     
