@@ -45,18 +45,18 @@ class GraphApproach:
         
         edges = np.matrix(edges, dtype=np.int64)
     
-        #plt.imshow(edges, cmap='hot')
-        #plt.show()
+        # plt.imshow(edges, cmap='hot')
+        # plt.show()
         
         return edges, angles
     
-    def createGraph(self, edges, angles , minRadius=1, maxRadius=5):
+    def createGraph(self, edges, angles , minRadius=1, maxRadius=50):
                 
         height, width = edges.shape
         
         vsIndex = []
-        vertexLabel = 0
         
+        vertexLabel = 0
         for h in range(0, height):
             for w in range(0, width):
                 if edges[h, w] == 255:
@@ -67,12 +67,10 @@ class GraphApproach:
                 else:
                     edges[h, w] = -1
         
-        
-        #print(vertexLabel)
-        #plt.imshow(edges, cmap='hot')
-        #plt.show() 
-          
-        
+        # print(vertexLabel)
+        # plt.imshow(edges, cmap='hot')
+        # plt.show() 
+       
         # verticesNo = vertexLabel             
         
         # vsIndex = [None] * verticesNo  # to store the correesponding image index
@@ -85,6 +83,7 @@ class GraphApproach:
                 if edges[h, w] >= 0:  # is an edge
                                                         
                     vLabelOrg = edges[h, w]
+                   
                     # vsIndex[vLabelOrg] = (h, w)
                     
                     for hD in range(h - maxRadius, h + maxRadius):
@@ -95,28 +94,30 @@ class GraphApproach:
                                 vLabelDest = edges[hD, wD]
                                 if vLabelDest >= 0 and vLabelDest != vLabelOrg:  # is an edge
                                                                                                                                                                  
-                                    weight = self.laplaceWeight((h, w), (hD, wD), angles[h, w], angles[hD, wD], 1)
-                                    # print(weight)
+                                    weight = self.laplaceWeight((h, w), (hD, wD), angles[h, w], angles[hD, wD], 100)
+                                    # print((h,w),(hD,wD), weight)
                                     tupleList.append([vLabelOrg, vLabelDest, weight])                                    
                                     
                             except:
-                                pass        
+                                continue        
         
         graph = Graph.TupleList(edges=tupleList, directed=False, weights=True)
                
-        graph.vs['imageIndex'] = vsIndex
+        graph.vs['name'] = vsIndex
                              
         graph.simplify(multiple=True, loops=True, combine_edges="max")
-        graph.vs.select(_degree=0).delete()
+        #graph.vs.select(_degree=0).delete()
         
-        print('Creating graph [OK]')
-                
-                
-        membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
-        
+        #print('Creating graph [OK]')
+        #plot(graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering())
+                        
+        #membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
+        membership = graph.community_leading_eigenvector(weights=graph.es["weight"]).membership
+               
+        # plot(graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering())
                              
         # membership = graph.community_multilevel(weights=graph.es["weight"]).membership 
-        # membership = graph.community_label_propagation(weights=graph.es["weights"])   
+        #membership = graph.community_label_propagation(weights=graph.es["weight"]).membership   
         
         print('Clutering [OK]')
                 
@@ -124,29 +125,32 @@ class GraphApproach:
                             
     def membershipToImage(self, graph, membership, height, width):
         
-        clusters = np.zeros((height, width), np.int32)  
-        
+        clusters = np.zeros((height, width), np.int32) 
+                        
         for i in range(0, len(membership)):
-            h, w = graph.vs['imageIndex'][i]
+            h, w = graph.vs[i]['name']
             clusters[h, w] = membership[i]
+            pass
         
         plt.imshow(clusters, cmap='jet')
         plt.show()
     
     def laplaceWeight(self, pOrg, pDest, angleOrg , angleDest, b):
                            
-        fOrg = pOrg[0], pOrg[1]  # , angleOrg#, distOrgToCent
-        fDest = pDest[0], pDest[1]  # , angleDest#, distDestToCent   
+        # fOrg = pOrg[0], pOrg[1]  # , angleOrg#, distOrgToCent
+        # fDest = pDest[0], pDest[1]  # , angleDest#, distDestToCent   
         
         # print(distance.sqeuclidean(fOrg,fDest))
         
-        diff = distance.euclidean(pOrg, pDest)
+        dist = distance.euclidean(pOrg, pDest)
        
-        # print(diff, (1 / (2 * b)) * np.exp(-1 * ( diff / b)))
+        #print(dist, (1 / (2 * b)) * np.exp(-1 * ( dist / b)))
         
-        return np.exp(-1 * diff)
+        #print(pOrg, pDest, diff ,(1 / (2 * b)) * np.exp(-1 * (diff / b)))
+        
+        
                             
-        #return (1 / (2 * b)) * np.exp(-1 * (diff / b))
+        return (1 / (2 * b)) * np.exp(-1 * (dist / b))
     
     def cosine(self, vector1, vector2):
         norm1 = np.linalg.norm(vector1)
