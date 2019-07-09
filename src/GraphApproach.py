@@ -9,6 +9,7 @@ from igraph.drawing import edge
 from dis import dis
 from scipy.spatial import distance
 from numpy.lib.function_base import angle
+from numpy.core.numeric import indices
 
 
 class GraphApproach:
@@ -50,7 +51,7 @@ class GraphApproach:
         
         return edges, angles
     
-    def createGraph(self, edges, angles , minRadius=1, maxRadius=50):
+    def createGraph(self, edges, angles , minRadius=1, maxRadius=5):
                 
         height, width = edges.shape
         
@@ -67,18 +68,15 @@ class GraphApproach:
                 else:
                     edges[h, w] = -1
         
-        # print(vertexLabel)
-        # plt.imshow(edges, cmap='hot')
-        # plt.show() 
-       
-        # verticesNo = vertexLabel             
-        
-        # vsIndex = [None] * verticesNo  # to store the correesponding image index
+        #print(vertexLabel)
+        #plt.imshow(edges, cmap='hot')
+        #plt.show() 
+               
         tupleList = []  # store edges and weights
                
         # all pixels 
-        for h in range(0, height):
-            for w in range(0 , width):
+        for h in range(0 + maxRadius, height - maxRadius):
+            for w in range(0 + maxRadius , width - maxRadius):
                                
                 if edges[h, w] >= 0:  # is an edge
                                                         
@@ -86,16 +84,23 @@ class GraphApproach:
                    
                     # vsIndex[vLabelOrg] = (h, w)
                     
-                    for hD in range(h - maxRadius, h + maxRadius):
-                        for wD in range(w - maxRadius, w + maxRadius):
-                                                   
+                    mask = edges[h - maxRadius : h + maxRadius, w - maxRadius: w + maxRadius]
+                    # plt.imshow(mask, cmap='jet')
+                    # plt.show()
+                                        
+                    b = self.computeB(mask)
+                    
+                    for hD in range(0, maxRadius * 2):
+                        for wD in range(0, maxRadius * 2):
+                                                                       
                             try:  # avoid to access out of dimentions 
                                 
-                                vLabelDest = edges[hD, wD]
-                                if vLabelDest >= 0 and vLabelDest != vLabelOrg:  # is an edge
-                                                                                                                                                                 
-                                    weight = self.laplaceWeight((h, w), (hD, wD), angles[h, w], angles[hD, wD], 100)
-                                    # print((h,w),(hD,wD), weight)
+                                vLabelDest = mask[hD, wD]
+                                if (vLabelDest >= 0) and (vLabelDest != vLabelOrg):  # is an edge
+                                                                                                                                                     
+                                    weight = self.laplaceWeight((10, 10), (hD, wD), edges[h, w], edges[hD, wD], b)
+                                    #print((10,10),(hD,wD), weight)
+                                    #print(vLabelOrg, vLabelDest, weight)
                                     tupleList.append([vLabelOrg, vLabelDest, weight])                                    
                                     
                             except:
@@ -106,13 +111,14 @@ class GraphApproach:
         graph.vs['name'] = vsIndex
                              
         graph.simplify(multiple=True, loops=True, combine_edges="max")
-        #graph.vs.select(_degree=0).delete()
+        # graph.vs.select(_degree=0).delete()
         
-        #print('Creating graph [OK]')
-        #plot(graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering())
-                        
-        #membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
-        membership = graph.community_leading_eigenvector(weights=graph.es["weight"]).membership
+        print('Creating graph [OK]')
+                             
+        membership = graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering().membership
+        
+        # membership = graph.community_edge_betweenness(weights=graph.es["weight"], directed=False).as_clustering().membership
+        # membership = graph.community_leading_eigenvector(weights=graph.es["weight"]).membership
                
         # plot(graph.community_fastgreedy(weights=graph.es["weight"]).as_clustering())
                              
@@ -122,6 +128,23 @@ class GraphApproach:
         print('Clutering [OK]')
                 
         self.membershipToImage(graph, membership, height, width)
+        
+    def computeB(self, mask):
+                       
+        indicesH, indicesW = np.nonzero(mask >= 0)
+                       
+        medianH = np.median(indicesH)
+        medianW = np.median(indicesW)
+        
+        #bH = np.sum(np.abs(np.array(indicesH) - medianH)) / len(indicesH)
+        #bW = np.sum(np.abs(np.array(indicesW) - medianW)) / len(indicesW)
+        
+        b = np.sum(np.abs(np.array(indicesH) - medianH) + np.abs(np.array(indicesW) - medianW)) / len(indicesH)
+        
+        #print(b)
+        
+        return b
+        #return np.max((bH, bW))
                             
     def membershipToImage(self, graph, membership, height, width):
         
@@ -130,7 +153,7 @@ class GraphApproach:
         for i in range(0, len(membership)):
             h, w = graph.vs[i]['name']
             clusters[h, w] = membership[i]
-            pass
+            
         
         plt.imshow(clusters, cmap='jet')
         plt.show()
@@ -143,12 +166,8 @@ class GraphApproach:
         # print(distance.sqeuclidean(fOrg,fDest))
         
         dist = distance.euclidean(pOrg, pDest)
-       
-        #print(dist, (1 / (2 * b)) * np.exp(-1 * ( dist / b)))
         
-        #print(pOrg, pDest, diff ,(1 / (2 * b)) * np.exp(-1 * (diff / b)))
-        
-        
+        # print(pOrg,pDest, b ,(1 / (2 * b)) * np.exp(-1 * (2*dist / b)))
                             
         return (1 / (2 * b)) * np.exp(-1 * (dist / b))
     
