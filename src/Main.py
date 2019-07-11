@@ -23,7 +23,7 @@ import cv2
 if __name__ == '__main__':
     
        
-    fileName = "../input/others/small.png"
+    fileName = "../input/others/syntethic.png"
     rgbImage = cv2.imread(fileName)
     
     '''imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

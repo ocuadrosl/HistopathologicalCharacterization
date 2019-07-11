@@ -37,8 +37,8 @@ class GraphApproach:
         # x, y = np.mgrid[0:h, 0:w]
         # plt.quiver(x, y, gx, gy, units='x', pivot='tip', width=0.09,   scale=1 / 0.01)
           
-        # plt.imshow(angles, cmap='hot')
-        # plt.show()
+        #plt.imshow(angles, cmap='hot')
+        #plt.show()
         
         blur[np.where(binary == 255)] = 255  # aply threshold to blur
         
@@ -49,9 +49,16 @@ class GraphApproach:
         # plt.imshow(edges, cmap='hot')
         # plt.show()
         
-        return edges, angles
+        edgeAngle = np.zeros(edges.shape, np.float32) 
+        
+        edgeAngle[np.where(edges == 255)] = angles[np.where(edges == 255)]
+        
+        #plt.imshow(edgeAngle, cmap='hot')
+        #plt.show()
+        
+        return edges, edgeAngle
     
-    def createGraph(self, edges, angles, maxRadius=3):
+    def createGraph(self, edges, angles, maxRadius=10):
                 
         height, width = edges.shape
         
@@ -152,15 +159,10 @@ class GraphApproach:
     
     def weight(self, angOrg, angTarg, pOrg, pTarg, b):
         
-        pOrg *=10
-        pTarg *=10
-        
         pOrg.append(angOrg)
         pTarg.append(angTarg)
         
-        
-        
-        dist = distance.euclidean(pOrg, pTarg)
+        dist = distance.sqeuclidean(pOrg, pTarg)
         
         return (1 / (2 * b)) * np.exp(-1 * (dist / b))
     
@@ -178,7 +180,9 @@ class GraphApproach:
          
         median = np.median(mask)
         
-        return  np.sum(np.abs(mask - median)) / mask.size         
+        b = np.sum(np.abs(mask - median)) / mask.size 
+        
+        return  b if b > 0 else 0.00001
                             
     def membershipToImage(self, graph, membership, height, width):
         
