@@ -23,26 +23,10 @@ import cv2
 if __name__ == '__main__':
     
        
-    fileName = "../input/others/syntethic.png"
+    fileName = "../input/others/06960 (2).jpg"
     rgbImage = cv2.imread(fileName)
     
-    '''imageGray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(imageGray,(3,3), 0)
-    #blur = cv2.medianBlur(imageGray, 3)
-  
-    
-    threshold = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    blur[np.where(threshold==255)]=255 #aply threshold to blur
-    
-    #plt.imshow(blur, cmap='jet')
-    #plt.show()
-    
-    edges = cv2.Canny(blur,0,255)
-    
-    plt.imshow(edges, cmap='hot')
-    plt.show()
-    
-    '''
+   
     graphApproach = GraphApproach()
     graphApproach.process(rgbImage)
     

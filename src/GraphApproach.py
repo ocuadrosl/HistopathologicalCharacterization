@@ -58,7 +58,7 @@ class GraphApproach:
         
         return edges, edgeAngle
     
-    def createGraph(self, edges, angles, maxRadius=10):
+    def createGraph(self, edges, angles, maxRadius=3):
                 
         height, width = edges.shape
         
@@ -97,7 +97,7 @@ class GraphApproach:
                     # plt.imshow(mask, cmap='jet')
                     # plt.show()
                                         
-                    # b = self.computeB(mask)
+                    #b = self.computeB(mask)
                     b = self.parameterB(angMask)
                                        
                     for hD in range(0, maxRadius * 2):
@@ -159,8 +159,8 @@ class GraphApproach:
     
     def weight(self, angOrg, angTarg, pOrg, pTarg, b):
         
-        pOrg.append(angOrg)
-        pTarg.append(angTarg)
+        #pOrg.append(angOrg)
+        #pTarg.append(angTarg)
         
         dist = distance.sqeuclidean(pOrg, pTarg)
         
@@ -192,8 +192,9 @@ class GraphApproach:
             h, w = graph.vs['name'][i]
             clusters[h, w] = membership[i]
         
-        plt.imshow(clusters, cmap='jet')
-        plt.show()
+        #plt.imshow(clusters, cmap='jet')
+        plt.imsave('/home/oscar/cluster.png', clusters, cmap='jet')
+        #plt.show()
     
     def laplaceWeight(self, pOrg, pDest, angleOrg , angleDest, b):
                            
