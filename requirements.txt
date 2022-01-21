@@ -17,7 +17,7 @@ dirspec==13.10
 future==0.15.2
 httplib2>=0.18.0
 idna==2.0
-ipython==2.4.1
+ipython==7.16.3
 joblib==0.9.4
 lockfile==0.12.2
 louis==2.6.4
