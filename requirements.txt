@@ -21,7 +21,7 @@ ipython==2.4.1
 joblib==0.9.4
 lockfile==0.12.2
 louis==2.6.4
-lxml==3.5.0
+lxml==4.9.1
 Mako==1.0.3
 MarkupSafe==0.23
 matplotlib==1.5.1
